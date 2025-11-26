@@ -1,118 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KRAKEN DEV</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Patrick+Hand&family=VT323&display=swap" rel="stylesheet">
-    <!-- SoundCloud Widget API -->
-    <script src="https://w.soundcloud.com/player/api.js"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Space Grotesk', 'sans-serif'],
-              doodle: ['Patrick Hand', 'cursive'],
-              console: ['VT323', 'monospace'],
-            },
-            colors: {
-              kraken: {
-                dark: '#0f172a',
-                card: '#1e293b',
-                primary: '#3b82f6', // Electric Blue
-                accent: '#eab308', // Gold
-                success: '#22c55e',
-              }
-            },
-            animation: {
-              'spin-slow': 'spin 12s linear infinite',
-              'bounce-visualizer': 'bounce-visualizer 0.5s infinite alternate',
-            },
-            keyframes: {
-              'bounce-visualizer': {
-                '0%': { height: '10%' },
-                '100%': { height: '100%' }
-              }
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KD CTAX</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Patrick+Hand&family=VT323&display=swap"
+    rel="stylesheet">
+  <!-- SoundCloud Widget API -->
+  <script src="https://w.soundcloud.com/player/api.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Space Grotesk', 'sans-serif'],
+            doodle: ['Patrick Hand', 'cursive'],
+            console: ['VT323', 'monospace'],
+          },
+          colors: {
+            kraken: {
+              dark: '#0f172a',
+              card: '#1e293b',
+              primary: '#3b82f6', // Electric Blue
+              accent: '#eab308', // Gold
+              success: '#22c55e',
             }
           },
+          animation: {
+            'spin-slow': 'spin 12s linear infinite',
+            'bounce-visualizer': 'bounce-visualizer 0.5s infinite alternate',
+          },
+          keyframes: {
+            'bounce-visualizer': {
+              '0%': { height: '10%' },
+              '100%': { height: '100%' }
+            }
+          }
         },
-      }
-    </script>
-    <style>
-      body {
-        background-color: #000;
-        color: white;
-        overflow: hidden; /* Prevent body scroll, handle in OS wrapper */
-        height: 100vh;
-        margin: 0;
-      }
-      /* Custom scrollbar for webkit */
-      ::-webkit-scrollbar {
-        width: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #0f172a; 
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #3b82f6; 
-        border-radius: 4px;
-      }
-      
-      /* CRT Effect for Console Theme (Dark Scanlines for White BG) */
-      .scanlines-white {
-        background: linear-gradient(
-          to bottom,
-          rgba(0,0,0,0),
-          rgba(0,0,0,0) 50%,
-          rgba(0,0,0,0.05) 50%,
-          rgba(0,0,0,0.05)
-        );
-        background-size: 100% 4px;
-        pointer-events: none;
-      }
+      },
+    }
+  </script>
+  <style>
+    body {
+      background-color: #000;
+      color: white;
+      overflow: hidden;
+      /* Prevent body scroll, handle in OS wrapper */
+      height: 100vh;
+      margin: 0;
+    }
 
-      /* Pencil Grid Pattern */
-      .pencil-grid {
-        background-image: 
-          linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-        background-size: 20px 20px;
-        background-color: #2b2b2b;
-      }
+    /* Custom scrollbar for webkit */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
 
-      /* Keyboard Button Style */
-      .key-cap {
-        box-shadow: 
-          0 0 0 1px #222,
-          0 4px 0 0 #222,
-          0 4px 0 1px #222,
-          0 4px 5px rgba(0,0,0,0.5);
-        transition: all 0.1s ease;
-      }
-      .key-cap:active, .key-cap.active {
-        transform: translateY(4px);
-        box-shadow: 
-          0 0 0 1px #222,
-          0 0 0 0 #222,
-          0 0 0 1px #222,
-          inset 0 2px 5px rgba(0,0,0,0.3);
-      }
-      
-      .key-cap-white {
-        box-shadow: 
-           0 0 0 1px #aaa,
-           0 4px 0 0 #aaa,
-           0 4px 0 1px #aaa,
-           0 4px 5px rgba(0,0,0,0.1);
-      }
-      .key-cap-white:active {
-        box-shadow: 
-           0 0 0 1px #aaa,
-           inset 0 2px 5px rgba(0,0,0,0.1);
-      }
-    </style>
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #3b82f6;
+      border-radius: 4px;
+    }
+
+    /* CRT Effect for Console Theme (Dark Scanlines for White BG) */
+    .scanlines-white {
+      background: linear-gradient(to bottom,
+          rgba(0, 0, 0, 0),
+          rgba(0, 0, 0, 0) 50%,
+          rgba(0, 0, 0, 0.05) 50%,
+          rgba(0, 0, 0, 0.05));
+      background-size: 100% 4px;
+      pointer-events: none;
+    }
+
+    /* Pencil Grid Pattern */
+    .pencil-grid {
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+      background-size: 20px 20px;
+      background-color: #2b2b2b;
+    }
+
+    /* Keyboard Button Style */
+    .key-cap {
+      box-shadow:
+        0 0 0 1px #222,
+        0 4px 0 0 #222,
+        0 4px 0 1px #222,
+        0 4px 5px rgba(0, 0, 0, 0.5);
+      transition: all 0.1s ease;
+    }
+
+    .key-cap:active,
+    .key-cap.active {
+      transform: translateY(4px);
+      box-shadow:
+        0 0 0 1px #222,
+        0 0 0 0 #222,
+        0 0 0 1px #222,
+        inset 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    .key-cap-white {
+      box-shadow:
+        0 0 0 1px #aaa,
+        0 4px 0 0 #aaa,
+        0 4px 0 1px #aaa,
+        0 4px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .key-cap-white:active {
+      box-shadow:
+        0 0 0 1px #aaa,
+        inset 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+  </style>
   <script type="importmap">
 {
   "imports": {
@@ -123,10 +131,12 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
+  <link rel="stylesheet" href="/index.css">
 </head>
-  <body>
-    <div id="root"></div>
+
+<body>
+  <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>

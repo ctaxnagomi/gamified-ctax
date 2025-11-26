@@ -1,9 +1,13 @@
+## Foundations for Gamified theme
 
+1. Theme Colors
+2. Theme Fonts
+3. Theme Layout
+4. Theme Components
 
 ## Run Locally
 
 **Prerequisites:**  Node.js
-
 
 1. Install dependencies:
    `npm install`
