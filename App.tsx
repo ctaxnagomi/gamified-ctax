@@ -17,7 +17,9 @@ declare global {
     }
 }
 
-const App: React.FC = () => {
+import LeandrosWelcome from './components/LeandrosWelcome';
+
+const MainSystem: React.FC = () => {
     const [activeView, setActiveView] = useState<string>(View.DASHBOARD);
     const [pageRotation, setPageRotation] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
@@ -551,5 +553,16 @@ const App: React.FC = () => {
         </div>
     );
 };
+
+const App: React.FC = () => {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    if (!isAuthenticated) {
+        return <LeandrosWelcome onSuccess={() => setIsAuthenticated(true)} />;
+    }
+
+    return <MainSystem />;
+};
+
 
 export default App;
