@@ -1,5 +1,12 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import CircularNav from './components/CircularNav';
+import SchematicSidebar from './components/SchematicSidebar';
+import DashboardView from './views/DashboardView';
+import JobsView from './views/JobsView';
+import QuestsView from './views/QuestsView';
+import LeaderboardView from './views/LeaderboardView';
+import ProfileView from './views/ProfileView';
+import MapView from './views/MapView';
 import { NavItem, View } from './types';
 import { LayoutDashboard, Briefcase, Scroll, Trophy, User, Sword, Star, Map, Terminal, PenTool, Gamepad2, Users, Calendar, Award, Globe, MessageCircle, Play, Pause, SkipForward, Music, Volume2, VolumeX, Minus, ChevronUp, Move } from 'lucide-react';
 
@@ -263,6 +270,14 @@ const App: React.FC = () => {
                 return <DashboardView theme={themeMode} />;
             case View.JOBS:
                 return <JobsView theme={themeMode} />;
+            case View.QUESTS:
+                return <QuestsView theme={themeMode} />;
+            case View.LEADERBOARD:
+                return <LeaderboardView theme={themeMode} />;
+            case View.PROFILE:
+                return <ProfileView theme={themeMode} />;
+            case 'MAP':
+                return <MapView theme={themeMode} />;
             default:
                 return <DashboardView theme={themeMode} />;
         }
@@ -536,251 +551,5 @@ const App: React.FC = () => {
         </div>
     );
 };
-
-// --- Sub-Views (Dynamic Themes) ---
-
-interface ThemeProps { theme: 'DEFAULT' | 'DOODLE' | 'CONSOLE' }
-
-const DashboardView: React.FC<ThemeProps> = ({ theme }) => (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <Card title={theme === 'DOODLE' ? 'Current Bounty' : (theme === 'CONSOLE' ? 'Primary Directive' : 'Active Quest')} theme={theme}>
-            <div className="flex items-start gap-4">
-                <div className={`p-3 rounded-lg shrink-0
-                ${theme === 'CONSOLE' ? 'bg-black text-white' : ''}
-                ${theme === 'DOODLE' ? 'bg-white text-black border-2 border-black' : ''}
-                ${theme === 'DEFAULT' ? 'bg-purple-500/20 text-purple-400' : ''}
-            `}>
-                    <Sword size={24} />
-                </div>
-                <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-lg truncate">Deploy to Production</h3>
-                    <p className={`text-xs md:text-sm mb-3 ${theme === 'CONSOLE' ? 'text-gray-600' : 'text-gray-400'}`}>Complete 3 CI/CD pipeline deployments.</p>
-                    <ProgressBar progress={66} color={theme === 'CONSOLE' ? 'bg-black' : 'bg-purple-500'} theme={theme} />
-                    <p className={`text-xs text-right mt-1 ${theme === 'CONSOLE' ? 'text-black' : 'text-purple-400'}`}>2/3 Completed</p>
-                </div>
-            </div>
-        </Card>
-
-        <Card title={theme === 'DOODLE' ? 'Loot' : (theme === 'CONSOLE' ? 'System Logs' : 'Daily Rewards')} theme={theme}>
-            <div className="flex justify-between items-center h-full">
-                {['M', 'T', 'W', 'T'].map((day, i) => (
-                    <div key={day} className="text-center">
-                        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center mx-auto mb-2 transition-all
-                        ${i === 1
-                                ? (theme === 'CONSOLE' ? 'bg-black text-white border-2 border-black' : (theme === 'DOODLE' ? 'bg-white border-2 border-dashed border-black text-black' : 'bg-kraken-primary/20 border border-kraken-primary text-kraken-primary'))
-                                : (theme === 'CONSOLE' ? 'border border-gray-300 text-gray-400' : 'bg-gray-800 text-gray-500')}
-                    `}>
-                            {day}
-                        </div>
-                        <div className={`text-[10px] md:text-xs ${theme === 'CONSOLE' ? 'text-black font-bold' : 'text-gray-500'}`}>{i === 1 ? 'Today' : 'Wed'}</div>
-                    </div>
-                ))}
-            </div>
-        </Card>
-
-        <Card title={theme === 'DOODLE' ? 'Chronicles' : (theme === 'CONSOLE' ? 'Output Stream' : 'Recent Activity')} theme={theme}>
-            <ul className="space-y-3 text-xs md:text-sm">
-                {[
-                    { txt: 'Applied to Netflix', xp: '+50 XP' },
-                    { txt: 'Updated Profile', xp: '+20 XP' }
-                ].map((item, i) => (
-                    <li key={i} className={`flex justify-between ${theme === 'CONSOLE' ? 'text-gray-800' : 'text-gray-300'}`}>
-                        <span>{item.txt}</span>
-                        <span className={theme === 'CONSOLE' ? 'text-black font-bold' : 'text-green-400'}>{item.xp}</span>
-                    </li>
-                ))}
-                <li className={`flex justify-between ${theme === 'CONSOLE' ? 'text-gray-800' : 'text-gray-300'}`}>
-                    <span>Skill Badge: React</span>
-                    <span className="text-yellow-500">Badge</span>
-                </li>
-            </ul>
-        </Card>
-    </div>
-);
-
-const JobsView: React.FC<ThemeProps> = ({ theme }) => (
-    <div className="space-y-4 animate-in fade-in slide-in-from-right-8 duration-500">
-        {[1, 2, 3].map((i) => (
-            <div key={i} className={`
-            p-4 md:p-6 rounded-xl border transition-colors group cursor-pointer relative overflow-hidden
-            ${theme === 'CONSOLE' ? 'bg-white border-black hover:bg-gray-50' : ''}
-            ${theme === 'DOODLE' ? 'bg-[#252525] border-dashed border-gray-500 hover:border-white' : ''}
-            ${theme === 'DEFAULT' ? 'bg-kraken-card border-gray-700 hover:border-kraken-primary' : ''}
-        `}>
-                <div className={`flex flex-col md:flex-row justify-between items-start gap-4`}>
-                    <div>
-                        <h3 className={`text-lg md:text-xl font-bold group-hover:underline ${theme === 'CONSOLE' ? 'text-black' : 'text-white'}`}>Senior Frontend Engineer</h3>
-                        <p className={`text-sm ${theme === 'CONSOLE' ? 'text-gray-600' : 'text-gray-400'}`}>TechCorp Inc. • Remote</p>
-                        <div className="flex gap-2 mt-3 flex-wrap">
-                            {['React', 'TS', 'Tailwind'].map(skill => <Badge key={skill} theme={theme}>{skill}</Badge>)}
-                        </div>
-                    </div>
-                    <button className={`w-full md:w-auto px-4 py-2 rounded-lg font-medium transition-colors
-                    ${theme === 'CONSOLE' ? 'bg-black text-white hover:bg-gray-800' : (theme === 'DOODLE' ? 'bg-white text-black border-2 border-black' : 'bg-kraken-primary hover:bg-blue-600 text-white')}
-                `}>
-                        Apply
-                    </button>
-                </div>
-            </div>
-        ))}
-    </div>
-);
-
-
-// --- Schematic Sidebar Component ---
-
-const SchematicSidebar: React.FC<{
-    activeView: string;
-    theme: string;
-    isMinimized: boolean;
-    onToggle: () => void;
-    position: { x: number, y: number };
-    onMove: (pos: { x: number, y: number }) => void;
-}> = ({ activeView, theme, isMinimized, onToggle, position, onMove }) => {
-    // If minimized, don't render in the main area (it moves to footer)
-    if (isMinimized) return null;
-
-    const descriptions: Record<string, string> = {
-        [View.DASHBOARD]: 'Overview of system status, active objectives, and recent log entries.',
-        [View.JOBS]: 'Marketplace for available contracts and technical bounties.',
-        [View.QUESTS]: 'Daily and weekly challenges to increment user experience.',
-        [View.LEADERBOARD]: 'Global rankings and competitive metrics analysis.',
-        [View.PROFILE]: 'User configuration, skill tree management, and visual customization.',
-        'MAP': 'Geospatial visualization of local and remote nodes.'
-    };
-
-    const isConsole = theme === 'CONSOLE';
-    const isDoodle = theme === 'DOODLE';
-
-    // Drag Logic
-    const isDraggingRef = useRef(false);
-    const dragOffsetRef = useRef({ x: 0, y: 0 });
-
-    useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            if (!isDraggingRef.current) return;
-            onMove({
-                x: e.clientX - dragOffsetRef.current.x,
-                y: e.clientY - dragOffsetRef.current.y
-            });
-        };
-
-        const handleMouseUp = () => {
-            isDraggingRef.current = false;
-        };
-
-        window.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('mouseup', handleMouseUp);
-        return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
-        };
-    }, [onMove]);
-
-    const handleMouseDown = (e: React.MouseEvent) => {
-        // Find the relative offset within the sidebar so it doesn't jump
-        const rect = e.currentTarget.closest('.schematic-sidebar')?.getBoundingClientRect();
-        if (rect) {
-            dragOffsetRef.current = {
-                // Actually simpler: offset = mouseClient - sidebarLeft
-                x: e.clientX - position.x,
-                y: e.clientY - position.y
-            };
-            isDraggingRef.current = true;
-        }
-    };
-
-
-    return (
-        <div
-            className={`
-                schematic-sidebar absolute z-20 
-                w-32 md:w-56 p-2 md:p-3 
-                border-l-2 md:border-2 border-dashed
-                transition-colors duration-300 shadow-xl
-                ${isConsole ? 'border-black bg-white/50 text-black' : ''}
-                ${isDoodle ? 'border-white/50 bg-black/10 text-white font-doodle' : ''}
-                ${!isConsole && !isDoodle ? 'border-kraken-primary/30 bg-kraken-card/50 text-kraken-primary backdrop-blur-sm' : ''}
-            `}
-            style={{
-                left: position.x,
-                top: position.y
-            }}
-        >
-            {/* Header with Minimize Button & Drag Handle */}
-            <div
-                className="flex justify-between items-start mb-1 cursor-move"
-                onMouseDown={(e) => {
-                    dragOffsetRef.current = {
-                        x: e.clientX - position.x,
-                        y: e.clientY - position.y
-                    };
-                    isDraggingRef.current = true;
-                }}
-            >
-                <div className={`text-[10px] font-bold opacity-70 flex items-center gap-1 ${isConsole ? 'font-console' : 'font-mono'}`}>
-                    <Move size={10} /> // SYSTEM_STATUS
-                </div>
-                <button
-                    onClick={(e) => { e.stopPropagation(); onToggle(); }}
-                    className="opacity-50 hover:opacity-100 hover:bg-black/10 rounded p-0.5 transition-all cursor-pointer"
-                    title="Minimize"
-                    onMouseDown={(e) => e.stopPropagation()}
-                >
-                    <Minus size={12} />
-                </button>
-            </div>
-
-            <div className={`text-xs md:text-sm font-bold mb-2 uppercase ${isConsole ? 'tracking-tighter' : 'tracking-widest'} pointer-events-none`}>
-                MODULE: {activeView}
-            </div>
-            <div className={`text-[8px] md:text-[10px] leading-tight opacity-80 pointer-events-none ${isConsole ? 'font-console' : 'font-sans'}`}>
-                {descriptions[activeView] || 'Awaiting input...'}
-            </div>
-
-            {/* Decorative Schematics */}
-            <div className="mt-3 flex gap-1 opacity-50 pointer-events-none">
-                <div className={`h-1 w-full ${isConsole ? 'bg-black' : 'bg-current'}`}></div>
-                <div className={`h-1 w-2 ${isConsole ? 'bg-black' : 'bg-current'}`}></div>
-            </div>
-            <div className="mt-1 flex justify-between text-[8px] opacity-60 font-mono pointer-events-none">
-                <span>LAT: 12ms</span>
-                <span>SYNC: OK</span>
-            </div>
-        </div>
-    );
-};
-
-// --- Helper Components ---
-
-const Card: React.FC<{ title: string; children: React.ReactNode; theme: string }> = ({ title, children, theme }) => (
-    <div className={`
-        p-4 md:p-6 rounded-xl border transition-all h-full flex flex-col
-        ${theme === 'CONSOLE' ? 'bg-white border-black text-black shadow-sm' : ''}
-        ${theme === 'DOODLE' ? 'bg-[#2a2a2a] border-2 border-dashed border-gray-600 shadow-[4px_4px_0px_rgba(255,255,255,0.2)]' : ''}
-        ${theme === 'DEFAULT' ? 'bg-kraken-card border-gray-700 hover:border-gray-600' : ''}
-    `}>
-        <h3 className={`text-base md:text-lg font-bold mb-4 ${theme === 'CONSOLE' ? 'text-black uppercase tracking-widest border-b border-black pb-2' : 'text-gray-200'}`}>
-            {title}
-        </h3>
-        <div className="flex-1">
-            {children}
-        </div>
-    </div>
-);
-
-const Badge: React.FC<{ children: React.ReactNode; theme: string }> = ({ children, theme }) => (
-    <span className={`px-2 py-1 rounded text-[10px] md:text-xs border
-        ${theme === 'CONSOLE' ? 'border-black text-black bg-gray-100' : (theme === 'DOODLE' ? 'border-gray-400 text-gray-300' : 'bg-gray-800 text-gray-300 border-gray-700')}
-    `}>
-        {children}
-    </span>
-);
-
-const ProgressBar: React.FC<{ progress: number; color: string; theme: string }> = ({ progress, color, theme }) => (
-    <div className={`w-full h-2 rounded-full overflow-hidden ${theme === 'CONSOLE' ? 'bg-gray-200 border border-black' : 'bg-gray-700'}`}>
-        <div className={`h-full transition-all duration-1000 ${color}`} style={{ width: `${progress}%` }}></div>
-    </div>
-);
 
 export default App;
