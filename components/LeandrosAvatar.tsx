@@ -1,44 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 interface LeandrosAvatarProps {
     isSpeaking: boolean;
     heresyLevel: number;
-    className?: string;
 }
 
-const LeandrosAvatar: React.FC<LeandrosAvatarProps> = ({ isSpeaking, heresyLevel, className = '' }) => {
-    const [currentImage, setCurrentImage] = useState('/leandros-idle.png');
+const LeandrosAvatar: React.FC<LeandrosAvatarProps> = ({ isSpeaking, heresyLevel }) => {
+    // Angry State
+    if (heresyLevel > 3) {
+        return (
+            <div className="w-32 h-32 md:w-48 md:h-48 relative animate-pulse">
+                <img
+                    src="/leandros-angry.png"
+                    alt="Leandros Angry"
+                    className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(255,0,0,0.8)]"
+                />
+            </div>
+        );
+    }
 
-    useEffect(() => {
-        if (heresyLevel > 3) {
-            setCurrentImage('/leandros-angry.png');
-        } else if (isSpeaking) {
-            // Simple animation loop for speaking could be done here, 
-            // but for now we switch to the speaking frame.
-            // Ideally we toggle between idle and speaking to simulate mouth movement.
-            const interval = setInterval(() => {
-                setCurrentImage(prev => prev === '/leandros-speaking.png' ? '/leandros-idle.png' : '/leandros-speaking.png');
-            }, 200);
-            return () => clearInterval(interval);
-        } else {
-            setCurrentImage('/leandros-idle.png');
-        }
-    }, [isSpeaking, heresyLevel]);
-
+    // Normal State (Idle + Speaking Overlay)
     return (
-        <div className={`relative w-32 h-32 md:w-48 md:h-48 border-4 border-cyan-800 bg-black overflow-hidden shadow-[0_0_20px_rgba(0,255,255,0.2)] ${className}`}>
-            {/* Scanline Overlay */}
-            <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-20 bg-[length:100%_2px,3px_100%]"></div>
-
-            {/* Avatar Image */}
+        <div className="w-32 h-32 md:w-48 md:h-48 relative">
+            {/* Idle Base */}
             <img
-                src={currentImage}
-                alt="Leandros Avatar"
-                className={`w-full h-full object-cover transition-transform duration-100 ${isSpeaking ? 'scale-105' : 'scale-100'} ${heresyLevel > 3 ? 'sepia-[.5] hue-rotate-[-50deg] saturate-200' : ''}`}
+                src="/leandros-idle.png"
+                alt="Leandros Idle"
+                className="w-full h-full object-contain absolute top-0 left-0 drop-shadow-[0_0_10px_rgba(0,255,255,0.5)]"
             />
 
-            {/* Status LED */}
-            <div className={`absolute top-2 right-2 w-3 h-3 rounded-full ${isSpeaking ? 'bg-green-500 animate-pulse shadow-[0_0_10px_#00ff00]' : 'bg-red-900'} z-30`}></div>
+            {/* Speaking Overlay (Mouth Animation) */}
+            <img
+                src="/leandros-speaking.png"
+                alt="Leandros Speaking"
+                className={`w-full h-full object-contain absolute top-0 left-0 drop-shadow-[0_0_15px_rgba(0,255,255,0.8)] ${isSpeaking ? 'mouth-anim' : 'opacity-0'}`}
+            />
         </div>
     );
 };

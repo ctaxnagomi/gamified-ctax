@@ -198,6 +198,201 @@ body {
 }
 
 .kd-invasion-text {
+  background-color: #000;
+  color: white;
+  overflow: hidden;
+  height: 100vh;
+  margin: 0;
+}
+
+/* Custom scrollbar for webkit */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3b82f6;
+  border-radius: 4px;
+}
+
+/* CRT Effect for Console Theme (Dark Scanlines for White BG) */
+.scanlines-white {
+  background: linear-gradient(to bottom,
+      rgba(0, 0, 0, 0),
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, 0.05) 50%,
+      rgba(0, 0, 0, 0.05));
+  background-size: 100% 4px;
+  pointer-events: none;
+}
+
+/* CRT Effect for Retro Theme (Light Scanlines for Dark BG) */
+.scanlines-retro {
+  background: linear-gradient(to bottom,
+      rgba(255, 255, 255, 0),
+      rgba(255, 255, 255, 0) 50%,
+      rgba(255, 255, 255, 0.02) 50%,
+      rgba(255, 255, 255, 0.02));
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* VHS Color Bleed Effect */
+.vhs-text {
+  text-shadow:
+    2px 0 0px rgba(255, 0, 0, 0.5),
+    -2px 0 0px rgba(0, 255, 255, 0.5);
+}
+
+/* Pencil Grid Pattern */
+.pencil-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-color: #2b2b2b;
+}
+
+/* Keyboard Button Style */
+.key-cap {
+  box-shadow:
+    0 0 0 1px #222,
+    0 4px 0 0 #222,
+    0 4px 0 1px #222,
+    0 4px 5px rgba(0, 0, 0, 0.5);
+  transition: all 0.1s ease;
+}
+
+.key-cap:active,
+.key-cap.active {
+  transform: translateY(4px);
+  box-shadow:
+    0 0 0 1px #222,
+    0 0 0 0 #222,
+    0 0 0 1px #222,
+    inset 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.key-cap-white {
+  box-shadow:
+    0 0 0 1px #aaa,
+    0 4px 0 0 #aaa,
+    0 4px 0 1px #aaa,
+    0 4px 5px rgba(0, 0, 0, 0.1);
+}
+
+.key-cap-white:active {
+  box-shadow:
+    0 0 0 1px #aaa,
+    inset 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Lofi Room Background */
+.lofi-room {
+  background-image: url('/lofi-room.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.lofi-room::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(45, 27, 46, 0.75);
+  pointer-events: none;
+}
+
+/* Chaplain Peeking Animation */
+@keyframes peek-in {
+  0% {
+    transform: translateY(100%) rotate(5deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes peek-in-left {
+  0% {
+    transform: translateX(-100%) rotate(-5deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.chaplain-peek {
+  animation: peek-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.chaplain-peek-left {
+  animation: peek-in-left 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* KD Invasion Success Animation */
+@keyframes invasion-glitch {
+  0% {
+    clip-path: inset(50% 0 30% 0);
+    transform: translate(-5px, 0);
+  }
+
+  20% {
+    clip-path: inset(20% 0 60% 0);
+    transform: translate(5px, 0);
+  }
+
+  40% {
+    clip-path: inset(40% 0 40% 0);
+    transform: translate(-5px, 0);
+  }
+
+  60% {
+    clip-path: inset(80% 0 5% 0);
+    transform: translate(5px, 0);
+  }
+
+  80% {
+    clip-path: inset(10% 0 70% 0);
+    transform: translate(-5px, 0);
+  }
+
+  100% {
+    clip-path: inset(30% 0 50% 0);
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes invasion-flash {
+
+  0%,
+  100% {
+    background-color: transparent;
+  }
+
+  10%,
+  90% {
+    background-color: rgba(255, 0, 0, 0.2);
+  }
+
+  50% {
+    background-color: rgba(255, 0, 0, 0.5);
+  }
+}
+
+.kd-invasion-text {
   font-family: 'Press Start 2P', cursive;
   text-shadow: 4px 4px 0px #ff0000;
   animation: invasion-glitch 1s infinite linear alternate-reverse;
@@ -205,4 +400,288 @@ body {
 
 .kd-invasion-bg {
   animation: invasion-flash 0.2s infinite;
+}
+
+/* --- LEANDROS 3.0 ANIMATIONS --- */
+
+/* Starfield Animation */
+@keyframes animStar {
+  from {
+    transform: translateY(0px);
+  }
+
+  to {
+    transform: translateY(-2000px);
+  }
+}
+
+/* Success Sequence: Zoom In/Out */
+@keyframes zoom-out-in {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+
+  /* Zoom in to transition */
+}
+
+/* Red Eyes Fade */
+@keyframes red-eyes-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+.animate-star-slow {
+  animation: animStar 150s linear infinite;
+}
+
+.animate-star-medium {
+  animation: animStar 100s linear infinite;
+}
+
+.animate-star-fast {
+  animation: animStar 50s linear infinite;
+}
+
+.key-cap.active {
+  transform: translateY(4px);
+  box-shadow:
+    0 0 0 1px #222,
+    0 0 0 0 #222,
+    0 0 0 1px #222,
+    inset 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.key-cap-white {
+  box-shadow:
+    0 0 0 1px #aaa,
+    0 4px 0 0 #aaa,
+    0 4px 0 1px #aaa,
+    0 4px 5px rgba(0, 0, 0, 0.1);
+}
+
+.key-cap-white:active {
+  box-shadow:
+    0 0 0 1px #aaa,
+    inset 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Lofi Room Background */
+.lofi-room {
+  background-image: url('/lofi-room.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.lofi-room::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(45, 27, 46, 0.75);
+  pointer-events: none;
+}
+
+/* Chaplain Peeking Animation */
+@keyframes peek-in {
+  0% {
+    transform: translateY(100%) rotate(5deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes peek-in-left {
+  0% {
+    transform: translateX(-100%) rotate(-5deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.chaplain-peek {
+  animation: peek-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.chaplain-peek-left {
+  animation: peek-in-left 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* KD Invasion Success Animation */
+@keyframes invasion-glitch {
+  0% {
+    clip-path: inset(50% 0 30% 0);
+    transform: translate(-5px, 0);
+  }
+
+  20% {
+    clip-path: inset(20% 0 60% 0);
+    transform: translate(5px, 0);
+  }
+
+  40% {
+    clip-path: inset(40% 0 40% 0);
+    transform: translate(-5px, 0);
+  }
+
+  60% {
+    clip-path: inset(80% 0 5% 0);
+    transform: translate(5px, 0);
+  }
+
+  80% {
+    clip-path: inset(10% 0 70% 0);
+    transform: translate(-5px, 0);
+  }
+
+  100% {
+    clip-path: inset(30% 0 50% 0);
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes invasion-flash {
+
+  0%,
+  100% {
+    background-color: transparent;
+  }
+
+  10%,
+  90% {
+    background-color: rgba(255, 0, 0, 0.2);
+  }
+
+  50% {
+    background-color: rgba(255, 0, 0, 0.5);
+  }
+}
+
+.kd-invasion-text {
+  font-family: 'Press Start 2P', cursive;
+  text-shadow: 4px 4px 0px #ff0000;
+  animation: invasion-glitch 1s infinite linear alternate-reverse;
+}
+
+.kd-invasion-bg {
+  animation: invasion-flash 0.2s infinite;
+}
+
+/* --- LEANDROS 3.0 ANIMATIONS --- */
+
+/* Starfield Animation */
+@keyframes animStar {
+  from {
+    transform: translateY(0px);
+  }
+
+  to {
+    transform: translateY(-2000px);
+  }
+}
+
+/* Success Sequence: Zoom In/Out */
+@keyframes zoom-out-in {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+
+  /* Zoom in to transition */
+}
+
+/* Red Eyes Fade */
+@keyframes red-eyes-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+.animate-star-slow {
+  animation: animStar 150s linear infinite;
+}
+
+.animate-star-medium {
+  animation: animStar 100s linear infinite;
+}
+
+.animate-star-fast {
+  animation: animStar 50s linear infinite;
+}
+
+.success-sequence-zoom {
+  animation: zoom-out-in 2s ease-in-out forwards;
+}
+
+.red-eyes-effect {
+  animation: red-eyes-pulse 3s ease-in-out infinite;
+}
+
+/* Mouth Animation */
+@keyframes mouth-move {
+
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.mouth-anim {
+  animation: mouth-move 0.2s infinite steps(1);
 }
