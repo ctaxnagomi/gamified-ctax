@@ -6,22 +6,31 @@ interface StarfieldProps {
 }
 
 const Starfield: React.FC<StarfieldProps> = ({ onStart }) => {
+    const [isTitleFocused, setIsTitleFocused] = React.useState(false);
+
+    const toggleFocus = () => {
+        setIsTitleFocused(!isTitleFocused);
+    };
+
     return (
-        <div className="fixed inset-0 z-0 bg-black overflow-hidden perspective-1000">
+        <div
+            className="fixed inset-0 z-0 bg-black overflow-hidden perspective-1000 cursor-pointer"
+            onClick={toggleFocus}
+        >
             {/* Stars Layers */}
-            <div className="absolute inset-0 z-0">
+            <div className="absolute inset-0 z-0 pointer-events-none">
                 <div id='stars' className="w-[1px] h-[1px] bg-transparent shadow-[0_0_1px_#FFF] animate-star-slow"></div>
                 <div id='stars2' className="w-[2px] h-[2px] bg-transparent shadow-[0_0_2px_#FFF] animate-star-medium"></div>
                 <div id='stars3' className="w-[3px] h-[3px] bg-transparent shadow-[0_0_3px_#FFF] animate-star-fast"></div>
             </div>
 
-            {/* Title */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center z-10 mix-blend-screen pointer-events-none">
-                <h1 className="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-b from-cyan-100 to-cyan-900 tracking-tighter opacity-20 blur-sm animate-pulse">KRACKED DEV</h1>
+            {/* Title (Layer 3 by default, Layer 2 when focused) */}
+            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center mix-blend-screen pointer-events-none transition-all duration-500 ${isTitleFocused ? 'z-20 blur-none opacity-100 scale-110' : 'z-0 blur-sm opacity-50 scale-100'}`}>
+                <h1 className="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-b from-cyan-100 to-cyan-900 tracking-tighter animate-pulse">KRACKED DEV</h1>
             </div>
 
-            {/* 3D Social Icons */}
-            <ul className="social-3d-container pointer-events-auto">
+            {/* 3D Social Icons (Layer 2 by default, Layer 3 when focused) */}
+            <ul className={`social-3d-container pointer-events-auto transition-all duration-500 ${!isTitleFocused ? 'z-20 blur-none opacity-100 scale-100' : 'z-0 blur-sm opacity-50 scale-90'}`}>
                 <li className="social-3d-item">
                     <a href="#" className="social-3d-link" onClick={(e) => e.preventDefault()}>
                         <Facebook className="icon" />

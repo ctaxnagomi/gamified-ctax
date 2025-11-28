@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Mic, Send, Volume2, Cpu, Eye, Minimize2, Maximize2, Move } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import LeandrosAvatar from './LeandrosAvatar';
@@ -404,6 +404,11 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
         setIsApiKeyValid(apiKey.length > 10 && apiKey.startsWith('AI'));
     }, [apiKey]);
 
+    // --- CALLBACKS ---
+    const handleStart = useCallback(() => {
+        setIsMinimized(false);
+    }, []);
+
     // --- RENDER ---
     if (successStage !== 'NONE') {
         return (
@@ -445,7 +450,7 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
         <div ref={containerRef} className="fixed inset-0 z-[100] overflow-hidden pointer-events-none">
 
             <div className="absolute inset-0 pointer-events-auto -z-10">
-                <Starfield onStart={() => setIsMinimized(false)} />
+                <Starfield onStart={handleStart} />
             </div>
 
             {heresyLevel > 0 && (
@@ -457,8 +462,9 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
                 ref={windowRef}
                 style={{
                     transform: `translate(${position.x}px, ${position.y}px)`,
-                    width: isMinimized ? '300px' : 'min(90vw, 700px)',
+                    width: isMinimized ? '300px' : 'min(95vw, 700px)',
                     height: isMinimized ? 'auto' : '80vh',
+                    touchAction: 'none'
                 }}
                 className={`absolute top-0 left-0 pointer-events-auto border-4 ${heresyLevel > 2 ? 'border-red-600' : 'border-cyan-800'} bg-black/90 backdrop-blur-md flex flex-col shadow-[0_0_50px_rgba(0,255,255,0.1)] transition-all duration-300 rounded-lg overflow-hidden ${isMinimized ? 'shadow-[0_0_20px_rgba(0,255,255,0.3)]' : ''}`}
             >
@@ -467,6 +473,7 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
                     className={`h-10 ${heresyLevel > 2 ? 'bg-red-900/50' : 'bg-cyan-900/50'} border-b ${heresyLevel > 2 ? 'border-red-600' : 'border-cyan-800'} flex justify-between items-center px-3 cursor-move select-none touch-none`}
                     onMouseDown={handleMouseDown}
                     onTouchStart={handleMouseDown}
+                    style={{ touchAction: 'none' }}
                 >
                     <div className="flex items-center gap-2">
                         <Move size={14} className="opacity-50" />
