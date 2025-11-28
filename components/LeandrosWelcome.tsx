@@ -123,7 +123,23 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
             recognitionRef.current.continuous = true;
             recognitionRef.current.interimResults = true;
 
+            recognitionRef.current.onstart = () => {
+                // Interrupt speaking when user starts talking
+                if (synthRef.current.speaking) {
+                    synthRef.current.cancel();
+                    setIsSpeaking(false);
+                    setIsTypingOutput(false);
+                }
+            };
+
             recognitionRef.current.onresult = (event: any) => {
+                // Interrupt speaking on result
+                if (synthRef.current.speaking) {
+                    synthRef.current.cancel();
+                    setIsSpeaking(false);
+                    setIsTypingOutput(false);
+                }
+
                 let finalTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
@@ -174,7 +190,8 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
         utterance.pitch = 0.8;
 
         const voices = synthRef.current.getVoices();
-        const techVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('David')) || voices[0];
+        // Prioritize British Male voice
+        const techVoice = voices.find(v => v.name.includes('Google UK English Male') || (v.lang === 'en-GB' && v.name.toLowerCase().includes('male'))) || voices.find(v => v.lang === 'en-GB') || voices[0];
         if (techVoice) utterance.voice = techVoice;
 
         utterance.onend = () => {
@@ -255,7 +272,7 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
 
             responseText = `I sense heresy... ${getHeresyMessage()}`;
 
-            if (newMistakeCount >= 3) {
+            if (newMistakeCount >= 4) {
                 responseText += " How about you join the community? Then tell me what the community name is.";
             }
         }
@@ -271,7 +288,7 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
             speakAndType(responseText);
 
             if (isSuccess) {
-                setTimeout(onSuccess, 3000); // Navigate to main page after success
+                onSuccess(); // Immediate navigation
             }
 
         } catch (error) {
@@ -280,7 +297,7 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
             speakAndType(responseText);
 
             if (isSuccess) {
-                setTimeout(onSuccess, 3000);
+                onSuccess(); // Immediate navigation
             }
         } finally {
             setIsProcessing(false);
@@ -456,7 +473,7 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
                             {heresyLevel > 0 && (
                                 <div className="mt-2 text-xs text-red-500 flex justify-between">
                                     <span>HERESY LEVEL: {'☠'.repeat(heresyLevel)}</span>
-                                    {heresyLevel >= 3 && (
+                                    {mistakeCount >= 4 && (
                                         <a href="https://x.com/i/communities/1983062242292822298" target="_blank" rel="noopener noreferrer" className="underline hover:text-red-300">
                                             [ SEEK REDEMPTION ]
                                         </a>
