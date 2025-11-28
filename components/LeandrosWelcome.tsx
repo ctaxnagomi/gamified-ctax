@@ -49,6 +49,7 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
     const animationFrameRef = useRef<number>();
     const containerRef = useRef<HTMLDivElement>(null);
     const windowRef = useRef<HTMLDivElement>(null);
+    const positionRef = useRef({ x: 0, y: 0 }); // Direct mutable ref for smooth drag
 
     // --- CONSTANTS ---
     const VALID_PASSWORDS = [
@@ -110,10 +111,10 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
     useEffect(() => {
         if (!hasInitializedPosition) {
             // Center window initially
-            setPosition({
-                x: window.innerWidth / 2 - 350, // Approx half width (700px / 2)
-                y: window.innerHeight / 2 - 300 // Approx half height
-            });
+            const initialX = window.innerWidth / 2 - 350;
+            const initialY = window.innerHeight / 2 - 300;
+            setPosition({ x: initialX, y: initialY });
+            positionRef.current = { x: initialX, y: initialY };
             setHasInitializedPosition(true);
         }
     }, [hasInitializedPosition]);
@@ -123,8 +124,8 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
         const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
         const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
         setDragOffset({
-            x: clientX - position.x,
-            y: clientY - position.y
+            x: clientX - positionRef.current.x,
+            y: clientY - positionRef.current.y
         });
     };
 
@@ -133,22 +134,29 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
             const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
             const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
 
-            setPosition({
-                x: clientX - dragOffset.x,
-                y: clientY - dragOffset.y
-            });
+            const newX = clientX - dragOffset.x;
+            const newY = clientY - dragOffset.y;
+
+            // Direct DOM update for smoothness
+            positionRef.current = { x: newX, y: newY };
+            if (windowRef.current) {
+                windowRef.current.style.transform = `translate(${newX}px, ${newY}px)`;
+            }
         }
     };
 
     const handleMouseUp = () => {
-        setIsDragging(false);
+        if (isDragging) {
+            setIsDragging(false);
+            setPosition(positionRef.current); // Sync state on drag end
+        }
     };
 
     useEffect(() => {
         if (isDragging) {
             window.addEventListener('mousemove', handleMouseMove);
             window.addEventListener('mouseup', handleMouseUp);
-            window.addEventListener('touchmove', handleMouseMove);
+            window.addEventListener('touchmove', handleMouseMove, { passive: false });
             window.addEventListener('touchend', handleMouseUp);
         } else {
             window.removeEventListener('mousemove', handleMouseMove);
@@ -162,7 +170,7 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
             window.removeEventListener('touchmove', handleMouseMove);
             window.removeEventListener('touchend', handleMouseUp);
         };
-    }, [isDragging]);
+    }, [isDragging, dragOffset]);
 
 
     // --- AUDIO VISUALIZATION ---
@@ -436,10 +444,6 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
     return (
         <div ref={containerRef} className="fixed inset-0 z-[100] overflow-hidden pointer-events-none">
 
-            {/* Background is full screen but pointer events pass through to it? 
-                Actually, if we want the window to be draggable, the container should probably NOT block clicks.
-                But Starfield is visual only.
-            */}
             <div className="absolute inset-0 pointer-events-auto -z-10">
                 <Starfield />
             </div>
@@ -473,10 +477,10 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
                         <div className={`w-3 h-3 rounded-full ${isApiKeyValid ? 'bg-green-500 shadow-[0_0_5px_#00ff00]' : 'bg-red-500 shadow-[0_0_5px_#ff0000]'} transition-colors duration-300`} title={isApiKeyValid ? "API Online" : "API Offline"}></div>
                         <button
                             onClick={() => setIsMinimized(!isMinimized)}
-                            className="hover:text-white transition-colors p-1"
+                            className="text-cyan-400 hover:text-white transition-colors p-1 bg-black/20 rounded hover:bg-cyan-500/20"
                             title={isMinimized ? "Expand" : "Minimize"}
                         >
-                            {isMinimized ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
+                            {isMinimized ? <Maximize2 size={18} /> : <Minimize2 size={18} />}
                         </button>
                     </div>
                 </div>

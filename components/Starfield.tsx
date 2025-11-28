@@ -36,4 +36,4 @@ const Starfield: React.FC = () => {
     );
 };
 
-export default Starfield;
+export default React.memo(Starfield);
