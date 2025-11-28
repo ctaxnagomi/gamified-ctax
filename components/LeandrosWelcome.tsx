@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, Send, Volume2, Cpu, Eye } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import LeandrosAvatar from './LeandrosAvatar';
 
 interface LeandrosWelcomeProps {
     onSuccess: () => void;
@@ -188,8 +189,8 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
         setDisplayedText('');
 
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 0.9;
-        utterance.pitch = 0.8;
+        utterance.rate = 0.8; // Slower, more deliberate
+        utterance.pitch = 0.6; // Deeper pitch for Space Marine effect
 
         const voices = synthRef.current.getVoices();
         const techVoice = voices.find(v => v.name.includes('Google UK English Male') || (v.lang === 'en-GB' && v.name.toLowerCase().includes('male'))) || voices.find(v => v.lang === 'en-GB') || voices[0];
@@ -252,6 +253,22 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
         const newHistory = [...conversationHistory, { role: 'user' as const, parts: [{ text: currentInput }] }];
         setConversationHistory(newHistory);
 
+        // ========== NAVIGATION COMMANDS ==========
+        const lowerInput = currentInput.toLowerCase();
+        if (lowerInput.includes('open map') || lowerInput.includes('go to map')) {
+            speakAndType("Accessing cartographic data.");
+            // In a real app, we would use a callback or context to change the view.
+            // For now, we'll just acknowledge.
+            setIsProcessing(false);
+            return;
+        }
+        if (lowerInput.includes('leaderboard') || lowerInput.includes('rankings')) {
+            speakAndType("Displaying aspirant rankings.");
+            setIsProcessing(false);
+            return;
+        }
+
+        // ========== CLIENT-SIDE PASSWORD VALIDATION ==========
         const isValid = isValidPassword(currentInput);
 
         let responseText = '';
@@ -321,6 +338,13 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
             )}
 
             <div className={`relative w-full max-w-3xl h-[80vh] border-4 ${heresyLevel > 2 ? 'border-red-600' : 'border-cyan-800'} bg-black p-1 flex flex-col shadow-[0_0_50px_rgba(0,255,255,0.1)]`}>
+
+                {/* Leandros Avatar (Top Right) */}
+                {step === 'CHAT' && (
+                    <div className="absolute top-[-60px] right-[-20px] z-50 md:right-[-60px]">
+                        <LeandrosAvatar isSpeaking={isSpeaking} heresyLevel={heresyLevel} />
+                    </div>
+                )}
 
                 <div className={`h-8 ${heresyLevel > 2 ? 'bg-red-900/50' : 'bg-cyan-900/30'} border-b ${heresyLevel > 2 ? 'border-red-600' : 'border-cyan-800'} flex justify-between items-center px-2 mb-2`}>
                     <span className="text-xs tracking-widest">KRACKED DEV :: AUTH SYSTEM v1.0</span>
@@ -468,6 +492,18 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
                 </div>
             </div>
 
+            {/* CHAPLAIN FIGURE (LEFT SIDE) */}
+            {showChaplain && (
+                <div className="fixed bottom-0 left-0 w-1/3 h-2/3 pointer-events-none z-[150] chaplain-peek-left">
+                    <img
+                        src="/chaplain-figure.png"
+                        alt="Judging Chaplain"
+                        className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(255,0,0,0.5)]"
+                    />
+                </div>
+            )}
+
+            {/* CHAPLAIN PEEK OVERLAY (RIGHT SIDE - OLD) */}
             {showChaplain && chaplainImage && (
                 <div className="fixed bottom-0 right-0 w-1/3 h-1/2 pointer-events-none z-[150] chaplain-peek">
                     <img

@@ -127,8 +127,24 @@ body {
   }
 }
 
+@keyframes peek-in-left {
+  0% {
+    transform: translateX(-100%) rotate(-5deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
 .chaplain-peek {
   animation: peek-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.chaplain-peek-left {
+  animation: peek-in-left 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 /* KD Invasion Success Animation */
