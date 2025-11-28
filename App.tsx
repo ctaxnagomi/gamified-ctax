@@ -30,8 +30,8 @@ const MainSystem: React.FC = () => {
     const [isSidebarMinimized, setIsSidebarMinimized] = useState(false);
     const [sidebarPos, setSidebarPos] = useState({ x: 20, y: 260 });
 
-    // Theme State: DEFAULT -> DOODLE -> CONSOLE
-    const [themeMode, setThemeMode] = useState<'DEFAULT' | 'DOODLE' | 'CONSOLE'>('DEFAULT');
+    // Theme State: DEFAULT -> DOODLE -> CONSOLE -> RETRO -> LOFI
+    const [themeMode, setThemeMode] = useState<'DEFAULT' | 'DOODLE' | 'CONSOLE' | 'RETRO' | 'LOFI'>('DEFAULT');
 
     // Music Player Refs
     const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -55,6 +55,18 @@ const MainSystem: React.FC = () => {
             title: "Whiplash | John Wasson - Caravan",
             artist: "GoodDay Motion & Waves",
             url: "https://soundcloud.com/goodday-3/whiplash-john-wasson-caravan-1"
+        },
+        RETRO: {
+            src: "https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/123456789&color=%23ff00ff&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true", // Placeholder ID, replace with real retro track
+            title: "Retro Wave Mix",
+            artist: "Synthwave",
+            url: "https://soundcloud.com/"
+        },
+        LOFI: {
+            src: "https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1578671059&color=%23f4a582&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true",
+            title: "Lofi Chill Study Mix",
+            artist: "Chillhop Music",
+            url: "https://soundcloud.com/chillhopdotcom/afternoon-hangout"
         }
     }), []);
 
@@ -131,6 +143,8 @@ const MainSystem: React.FC = () => {
         setThemeMode(prev => {
             if (prev === 'DEFAULT') return 'DOODLE';
             if (prev === 'DOODLE') return 'CONSOLE';
+            if (prev === 'CONSOLE') return 'RETRO';
+            if (prev === 'RETRO') return 'LOFI';
             return 'DEFAULT';
         });
     };
@@ -185,6 +199,34 @@ const MainSystem: React.FC = () => {
                     'MAP': <Calendar size={18} />
                 };
                 return { ...item, label: labels[item.id], icon: icons[item.id], color: '#000000' };
+            } else if (themeMode === 'RETRO') {
+                // Retro Emulator Theme
+                const labels: Record<string, string> = {
+                    [View.DASHBOARD]: 'Library',
+                    [View.JOBS]: 'Multiplayer',
+                    [View.QUESTS]: 'Challenges',
+                    [View.LEADERBOARD]: 'High Scores',
+                    [View.PROFILE]: 'Save Data',
+                    'MAP': 'World Map'
+                };
+                const icons: Record<string, React.ReactNode> = {
+                    [View.DASHBOARD]: <Gamepad2 size={18} />,
+                    [View.JOBS]: <Users size={18} />,
+                    [View.QUESTS]: <Sword size={18} />,
+                    [View.LEADERBOARD]: <Trophy size={18} />,
+                    [View.PROFILE]: <User size={18} />,
+                    'MAP': <Map size={18} />
+                };
+                // Neon colors for Retro
+                const colors: Record<string, string> = {
+                    [View.DASHBOARD]: '#ff00ff', // Magenta
+                    [View.JOBS]: '#00ffff', // Cyan
+                    [View.QUESTS]: '#ffff00', // Yellow
+                    [View.LEADERBOARD]: '#00ff00', // Green
+                    [View.PROFILE]: '#ff0000', // Red
+                    'MAP': '#0000ff' // Blue
+                };
+                return { ...item, label: labels[item.id], icon: icons[item.id], color: colors[item.id] };
             } else {
                 // Default
                 const labels: Record<string, string> = {
@@ -253,6 +295,24 @@ const MainSystem: React.FC = () => {
                     footer: 'bg-white border-t border-black',
                     contentBorder: 'border-black/20 border-dashed'
                 };
+            case 'RETRO':
+                return {
+                    bg: 'bg-[#1a1a2e]', // Dark blue/purple background
+                    text: 'text-[#00ff00] font-retro vhs-text', // Green text with VHS bleed
+                    osBorder: 'border-[#ff00ff] border-4 rounded-3xl shadow-[0_0_20px_#ff00ff]', // Neon pink border
+                    keyCap: 'bg-[#333] text-[#00ffff] border border-[#00ffff] shadow-[0_0_10px_#00ffff]',
+                    footer: 'bg-[#0f0f1a] border-t-2 border-[#ff00ff]',
+                    contentBorder: 'border-[#00ffff]/50 border-double border-4'
+                };
+            case 'LOFI':
+                return {
+                    bg: 'bg-[#2d1b2e] lofi-room', // Dark purple with room background
+                    text: 'text-[#f4a582] font-doodle', // Warm peach/coral text
+                    osBorder: 'border-[#f4a582] border-2 rounded-2xl shadow-[0_0_30px_rgba(244,165,130,0.3)]',
+                    keyCap: 'bg-[#3d2b3e] text-[#f4a582] border border-[#f4a582]/30',
+                    footer: 'bg-[#1a0f1b] border-t-2 border-[#f4a582]/40',
+                    contentBorder: 'border-[#f4a582]/30 border-2 rounded-lg'
+                };
             default:
                 return {
                     bg: 'bg-kraken-dark',
@@ -298,7 +358,10 @@ const MainSystem: React.FC = () => {
             <div className={`relative w-full h-full max-w-[1600px] mx-auto rounded-xl border-[6px] flex flex-col overflow-hidden transition-colors duration-500 ${themeStyles.osBorder} ${themeStyles.bg}`}>
 
                 {/* OS Status Bar */}
-                <div className={`h-8 px-4 flex justify-between items-center text-xs font-mono uppercase border-b z-50 ${themeMode === 'CONSOLE' ? 'bg-black text-white' : 'bg-[#111] text-gray-400 border-gray-700'}`}>
+                <div className={`h-8 px-4 flex justify-between items-center text-xs font-mono uppercase border-b z-50 
+                    ${themeMode === 'CONSOLE' ? 'bg-black text-white' :
+                        themeMode === 'RETRO' ? 'bg-[#2a0a2a] text-[#00ff00] border-[#ff00ff]' :
+                            'bg-[#111] text-gray-400 border-gray-700'}`}>
                     <div className="flex gap-4">
                         <span className="hidden sm:inline">KRACKEDDEV_OS v3.0</span>
                         <span className="sm:hidden">OS v3</span>
@@ -378,6 +441,17 @@ const MainSystem: React.FC = () => {
                         </div>
                     )}
 
+                    {/* 4. Retro CRT/VHS (Retro) */}
+                    {themeMode === 'RETRO' && (
+                        <div className="absolute inset-0 pointer-events-none z-0">
+                            <div className="scanlines-retro absolute inset-0 z-40 opacity-30"></div>
+                            {/* CRT Curvature Vignette */}
+                            <div className="absolute inset-0 bg-[radial-gradient(circle,transparent_60%,rgba(0,0,0,0.8)_100%)] z-30"></div>
+                            {/* VHS Noise Overlay */}
+                            <div className="absolute inset-0 bg-noise opacity-[0.03] mix-blend-overlay z-20"></div>
+                        </div>
+                    )}
+
 
                     {/* Navigation Layer - Corner Wheel */}
                     <CircularNav
@@ -444,23 +518,35 @@ const MainSystem: React.FC = () => {
                             }}
                         >
                             {/* Header Bar */}
-                            <header className={`flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 border-b pb-4 gap-4 ${themeMode === 'CONSOLE' ? 'border-black/10' : 'border-gray-800'}`}>
+                            <header className={`flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 border-b pb-4 gap-4 
+                                ${themeMode === 'CONSOLE' ? 'border-black/10' :
+                                    themeMode === 'RETRO' ? 'border-[#ff00ff]/50' :
+                                        'border-gray-800'}`}>
                                 <div>
                                     <h1
                                         className={`text-2xl md:text-3xl font-bold bg-clip-text transition-all duration-500 
-                                        ${themeMode === 'CONSOLE' ? 'text-black tracking-tighter' : 'text-transparent bg-gradient-to-r'} 
+                                        ${themeMode === 'CONSOLE' ? 'text-black tracking-tighter' :
+                                                themeMode === 'RETRO' ? 'text-[#00ff00] drop-shadow-[2px_2px_0_rgba(255,0,255,0.5)]' :
+                                                    'text-transparent bg-gradient-to-r'} 
                                         ${themeMode === 'DOODLE' ? 'tracking-wider' : ''}
                                     `}
                                         style={{ backgroundImage: themeMode === 'DEFAULT' ? `linear-gradient(to right, ${activeColor}, white)` : 'none' }}
                                     >
-                                        {themeMode === 'CONSOLE' ? '>> ' : ''} {navItems.find(i => i.id === activeView)?.label || activeView}
+                                        {themeMode === 'CONSOLE' ? '>> ' : ''}
+                                        {themeMode === 'RETRO' ? 'INSERT COIN: ' : ''}
+                                        {navItems.find(i => i.id === activeView)?.label || activeView}
                                         {themeMode === 'CONSOLE' && <span className="animate-pulse">_</span>}
+                                        {themeMode === 'RETRO' && <span className="animate-pulse"> █</span>}
                                     </h1>
-                                    <p className={`text-xs md:text-sm ${themeMode === 'CONSOLE' ? 'text-gray-600' : 'text-gray-400'}`}>Level 12 Junior Developer • 2,450 XP</p>
+                                    <p className={`text-xs md:text-sm ${themeMode === 'CONSOLE' ? 'text-gray-600' : themeMode === 'RETRO' ? 'text-[#ff00ff]' : 'text-gray-400'}`}>
+                                        {themeMode === 'RETRO' ? 'YEAR: 199X • RATING: E' : 'Level 12 Junior Developer • 2,450 XP'}
+                                    </p>
                                 </div>
                                 <div className="flex gap-4 w-full md:w-auto">
                                     <div className={`px-4 py-2 rounded-lg border flex items-center gap-2 w-full md:w-auto justify-center
-                                    ${themeMode === 'CONSOLE' ? 'border-black text-black bg-white shadow-sm' : 'bg-kraken-card border-gray-700'}
+                                    ${themeMode === 'CONSOLE' ? 'border-black text-black bg-white shadow-sm' :
+                                            themeMode === 'RETRO' ? 'border-[#00ffff] text-[#00ffff] bg-[#00ffff]/10 shadow-[0_0_10px_#00ffff]' :
+                                                'bg-kraken-card border-gray-700'}
                                 `}>
                                         <span style={{ color: themeMode === 'CONSOLE' ? '#000' : activeColor }}>⚡</span>
                                         <span className="font-mono text-sm">12 Streak</span>
@@ -484,7 +570,9 @@ const MainSystem: React.FC = () => {
                             onClick={() => setIsSidebarMinimized(false)}
                             className={`
                             mr-2 md:mr-4 px-3 py-1.5 rounded border border-dashed flex items-center gap-2 text-[10px] md:text-xs font-mono uppercase transition-colors
-                            ${themeMode === 'CONSOLE' ? 'border-black text-black hover:bg-black/10' : 'border-white/30 text-white/70 hover:bg-white/10'}
+                            ${themeMode === 'CONSOLE' ? 'border-black text-black hover:bg-black/10' :
+                                    themeMode === 'RETRO' ? 'border-[#00ff00] text-[#00ff00] hover:bg-[#00ff00]/10' :
+                                        'border-white/30 text-white/70 hover:bg-white/10'}
                         `}
                         >
                             <ChevronUp size={12} />
@@ -507,7 +595,10 @@ const MainSystem: React.FC = () => {
                     ></iframe>
 
                     {/* Visualizer Icon (Static/Animated) */}
-                    <div className={`w-8 h-8 md:w-10 md:h-10 rounded shrink-0 flex items-center justify-center ${themeMode === 'CONSOLE' ? 'bg-black text-white' : 'bg-kraken-primary text-white'}`}>
+                    <div className={`w-8 h-8 md:w-10 md:h-10 rounded shrink-0 flex items-center justify-center 
+                        ${themeMode === 'CONSOLE' ? 'bg-black text-white' :
+                            themeMode === 'RETRO' ? 'bg-[#ff00ff] text-white animate-pulse' :
+                                'bg-kraken-primary text-white'}`}>
                         {isPlaying ? (
                             <div className="flex gap-0.5 md:gap-1 items-end h-3 md:h-4">
                                 <div className="w-0.5 md:w-1 bg-white animate-bounce-visualizer" style={{ animationDuration: '0.4s' }}></div>
@@ -520,10 +611,10 @@ const MainSystem: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col overflow-hidden flex-1 min-w-0">
-                        <span className={`text-xs md:text-sm font-bold truncate ${themeMode === 'CONSOLE' ? 'text-black' : 'text-white'}`}>
+                        <span className={`text-xs md:text-sm font-bold truncate ${themeMode === 'CONSOLE' ? 'text-black' : themeMode === 'RETRO' ? 'text-[#00ff00]' : 'text-white'}`}>
                             {tracks[themeMode].title}
                         </span>
-                        <span className={`text-[10px] md:text-xs truncate ${themeMode === 'CONSOLE' ? 'text-gray-500' : 'text-gray-400'}`}>
+                        <span className={`text-[10px] md:text-xs truncate ${themeMode === 'CONSOLE' ? 'text-gray-500' : themeMode === 'RETRO' ? 'text-[#ff00ff]' : 'text-gray-400'}`}>
                             {tracks[themeMode].artist}
                         </span>
                     </div>
@@ -537,14 +628,14 @@ const MainSystem: React.FC = () => {
                                 max="100"
                                 value={isMuted ? 0 : volume}
                                 onChange={handleVolumeChange}
-                                className={`w-16 md:w-24 h-1 rounded-lg appearance-none cursor-pointer bg-gray-600 accent-current ${themeMode === 'CONSOLE' ? 'text-black' : 'text-white'}`}
+                                className={`w-16 md:w-24 h-1 rounded-lg appearance-none cursor-pointer bg-gray-600 accent-current ${themeMode === 'CONSOLE' ? 'text-black' : themeMode === 'RETRO' ? 'text-[#00ffff]' : 'text-white'}`}
                             />
                         </div>
 
-                        <button onClick={toggleMute} className={`p-2 rounded-lg hover:bg-gray-500/10 ${themeMode === 'CONSOLE' ? 'text-black' : 'text-gray-400'}`}>
+                        <button onClick={toggleMute} className={`p-2 rounded-lg hover:bg-gray-500/10 ${themeMode === 'CONSOLE' ? 'text-black' : themeMode === 'RETRO' ? 'text-[#00ff00]' : 'text-gray-400'}`}>
                             {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
                         </button>
-                        <div className={`hidden md:block text-xs opacity-50 ${themeMode === 'CONSOLE' ? 'text-black' : 'text-white'}`}>
+                        <div className={`hidden md:block text-xs opacity-50 ${themeMode === 'CONSOLE' ? 'text-black' : themeMode === 'RETRO' ? 'text-[#ff00ff]' : 'text-white'}`}>
                             {isPlaying ? 'PLAYING' : 'PAUSED'}
                         </div>
                     </div>

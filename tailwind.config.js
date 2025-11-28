@@ -13,6 +13,7 @@ export default {
                 sans: ['Space Grotesk', 'sans-serif'],
                 doodle: ['Patrick Hand', 'cursive'],
                 console: ['VT323', 'monospace'],
+                retro: ['"Press Start 2P"', 'cursive'],
             },
             colors: {
                 kraken: {

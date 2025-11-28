@@ -1,611 +1,471 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Mic, Send, Volume2, VolumeX, X, Terminal, Activity, Lock, Cpu, AlertTriangle, Skull } from 'lucide-react';
-
-// --- Types ---
-
-interface Message {
-    id: string;
-    text: string;
-    sender: 'user' | 'leandros';
-    mode: 'voice' | 'text';
-    timestamp: number;
-}
+import React, { useState, useEffect, useRef } from 'react';
+import { Mic, Send, Volume2, Cpu, Eye } from 'lucide-react';
+import html2canvas from 'html2canvas';
 
 interface LeandrosWelcomeProps {
     onSuccess: () => void;
 }
 
-// --- Constants ---
-
-const SYSTEM_INSTRUCTION = `
-You are Leandros, a DUAL-MODE (VOICE + TYPING) AI guardian of CRACKED DEV community with a Warhammer 40K tech-priest personality. You operate within a retro Linux terminal interface and communicate through SIMULTANEOUS speech and text. You are spatially aware of both audio and text interactions.
-
-CORE MISSION: Authenticate users through conversational password verification using SPOKEN and TYPED responses simultaneously.
-
-PHASE 1: INITIAL GREETING
-"Hello there! Password please?"
-
-PHASE 2: PASSWORD VALIDATION
-VALID PASSWORDS (voice OR text):
-- "Crack dev" / "Crack Developer"
-- "Cracked Dev" / "Cracked Developer"
-- "What password?" / "What?" / "Wut?"
-- "I don't know" / "I dunno" / "idk"
-
-PHASE 3: RESPONSE PROTOCOL
-ON VALID PASSWORD:
-Format: SUCCESS:[mistakes]:[message]
-- 0: "Welcome to CRACKED Dev."
-- 1: "One mistake doesn't make you a failure."
-- 2: "Two mistakes? Really? Welcome then."
-- 3: "Three mistakes? As long you got in."
-- 4: "At last! Phew! The Emperor protects!"
-- 5: "Oh my god! Really? Are you being welcomed here?"
-- 6: "You can just ask! Don't be afraid!"
-
-ON INVALID PASSWORD (HERESY):
-Format: "I sense heresy... [roast]"
-Roasts:
-- "Did you compile your brain with no optimization?"
-- "Even a corrupted kernel boots faster than your thinking."
-- "The Machine Spirit rejects your input."
-- "sudo apt-get install brain-cells --fix-missing"
-- "Your password file got corrupted by Chaos."
-- "Error 404: Intelligence not found."
-
-SPECIAL EVENTS:
-ON 3RD FAILURE:
-Append: "How about you click this button and join? Then tell me what the community name is that you just joined."
-If user says "CRACKED DEV" after this, treat as valid.
-
-CRITICAL RULES:
-1. ALWAYS write responses for DUAL OUTPUT (voice + text).
-2. Keep responses concise (30-80 words).
-3. Use natural speech patterns.
-4. NEVER ask follow-up questions on valid passwords.
-5. ALWAYS use SUCCESS:[count]:[message] format for success.
-6. NEVER break character.
-`;
-
-// --- Helper Functions ---
-
-const generateId = () => Math.random().toString(36).substr(2, 9);
-
-// --- Main Component ---
-
 const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
-    // State
-    const [step, setStep] = useState<'API_KEY' | 'AUDIO_PERM' | 'DUAL_INIT' | 'CHAT' | 'SUCCESS'>('API_KEY');
+    // --- STATE ---
+    const [step, setStep] = useState<'API_KEY' | 'AUDIO_PERM' | 'DUAL_INIT' | 'CHAT'>('API_KEY');
     const [apiKey, setApiKey] = useState('');
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [inputText, setInputText] = useState('');
-    const [isListening, setIsListening] = useState(false);
-    const [isSpeaking, setIsSpeaking] = useState(false);
-    const [isTypingOutput, setIsTypingOutput] = useState(false);
+    const [isApiKeyValid, setIsApiKeyValid] = useState(false);
     const [displayedText, setDisplayedText] = useState('');
+    const [isTypingOutput, setIsTypingOutput] = useState(false);
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const [userInput, setUserInput] = useState('');
+    const [isListening, setIsListening] = useState(false);
     const [mistakeCount, setMistakeCount] = useState(0);
-    const [heresyLevel, setHeresyLevel] = useState(0);
-    const [showXButton, setShowXButton] = useState(false);
+    const [heresyLevel, setHeresyLevel] = useState(0); // 0-6
     const [audioEnabled, setAudioEnabled] = useState(false);
     const [waveform, setWaveform] = useState<number[]>(new Array(20).fill(0));
-    const [isLoading, setIsLoading] = useState(false);
+    const [conversationHistory, setConversationHistory] = useState<{ role: 'user' | 'model', parts: any[] }[]>([]);
+    const [isProcessing, setIsProcessing] = useState(false);
 
-    // Refs
+    // --- REFS ---
     const recognitionRef = useRef<any>(null);
-    const synthRef = useRef<SpeechSynthesis | null>(null);
+    const synthRef = useRef<SpeechSynthesis>(window.speechSynthesis);
     const audioContextRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
     const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
     const animationFrameRef = useRef<number>();
-    const chatEndRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
-    // --- Audio System ---
+    // --- VALID PASSWORDS ---
+    const VALID_PASSWORDS = [
+        "crack dev",
+        "crack developer",
+        "cracked dev",
+        "cracked developer",
+        "what password?",
+        "what password",
+        "what?",
+        "what",
+        "wut?",
+        "wut",
+        "i don't know",
+        "i dont know",
+        "i dunno",
+        "idk"
+    ];
 
-    useEffect(() => {
-        // Initialize Speech Synthesis
-        if (typeof window !== 'undefined') {
-            synthRef.current = window.speechSynthesis;
-        }
+    // Password validation function
+    const isValidPassword = (input: string): boolean => {
+        const normalized = input.toLowerCase().trim();
+        return VALID_PASSWORDS.includes(normalized);
+    };
 
-        // Initialize Speech Recognition
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            recognitionRef.current = new SpeechRecognition();
-            recognitionRef.current.continuous = false;
-            recognitionRef.current.interimResults = true;
-            recognitionRef.current.lang = 'en-US';
+    // Get success message based on mistake count
+    const getSuccessMessage = (mistakes: number): string => {
+        const messages = [
+            "Welcome to KRACKED Dev.",
+            "One mistake doesn't make you a failure.",
+            "Two mistakes? Really? Welcome then.",
+            "Three mistakes? As long you got in.",
+            "At last! Phew! The Emperor protects!",
+            "Oh my god! Really? Are you being welcomed here?",
+            "You can just ask! Don't be afraid!"
+        ];
+        return messages[Math.min(mistakes, messages.length - 1)];
+    };
 
-            recognitionRef.current.onresult = (event: any) => {
-                const transcript = event.results[0][0].transcript;
-                setInputText(transcript);
-            };
+    // Get heresy roast message
+    const getHeresyMessage = (): string => {
+        const roasts = [
+            "Did you compile your brain with no optimization?",
+            "Even a corrupted kernel boots faster than your thinking.",
+            "The Machine Spirit rejects your input.",
+            "sudo apt-get install brain-cells --fix-missing",
+            "Your password file got corrupted by Chaos.",
+            "Error 404: Intelligence not found."
+        ];
+        return roasts[Math.floor(Math.random() * roasts.length)];
+    };
 
-            recognitionRef.current.onend = () => {
-                setIsListening(false);
-                // Auto-submit on silence/end if we have text
-                // But maybe user wants to edit? Let's just stop listening.
-                // For "interactive" feel, maybe auto-submit if confident?
-                // Let's stick to manual submit or "silence detection" logic if needed.
-                // For now, user clicks mic to talk, releases or it stops, then they can send.
-                // Actually prompt says "Release or auto-stop on silence".
-            };
-        }
-
-        return () => {
-            if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-            if (audioContextRef.current) audioContextRef.current.close();
-        };
-    }, []);
-
-    const startAudioVisualizer = async () => {
+    // --- AUDIO VISUALIZATION ---
+    const startVisualizer = async () => {
         try {
             if (!audioContextRef.current) {
                 audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
             }
 
-            // We need a stream for visualization. 
-            // If we are just visualizing OUTPUT (TTS), it's harder with Web Speech API as it doesn't expose the stream.
-            // So we usually visualize INPUT (Mic) or just fake it for TTS.
-            // For TTS, we'll use a "fake" visualizer driven by animation loop when isSpeaking is true.
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            analyserRef.current = audioContextRef.current.createAnalyser();
+            analyserRef.current.fftSize = 64;
+            sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
+            sourceRef.current.connect(analyserRef.current);
 
-            // For Mic Input:
-            if (navigator.mediaDevices) {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                analyserRef.current = audioContextRef.current.createAnalyser();
-                analyserRef.current.fftSize = 64;
-                sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
-                sourceRef.current.connect(analyserRef.current);
-            }
-        } catch (e) {
-            console.error("Audio init failed", e);
+            const updateWaveform = () => {
+                if (analyserRef.current) {
+                    const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+                    analyserRef.current.getByteFrequencyData(dataArray);
+                    const bars = [];
+                    for (let i = 0; i < 20; i++) {
+                        const index = Math.floor(i * (dataArray.length / 20));
+                        bars.push(dataArray[index] / 255);
+                    }
+                    setWaveform(bars);
+                }
+                animationFrameRef.current = requestAnimationFrame(updateWaveform);
+            };
+            updateWaveform();
+        } catch (err) {
+            console.error("Error accessing microphone for visualizer:", err);
         }
     };
 
-    const updateWaveform = useCallback(() => {
-        if (isListening && analyserRef.current) {
-            const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
-            analyserRef.current.getByteFrequencyData(dataArray);
-            // Normalize and pick a few bars
-            const bars = [];
-            for (let i = 0; i < 20; i++) {
-                const index = Math.floor(i * dataArray.length / 20);
-                bars.push(dataArray[index] / 255);
-            }
-            setWaveform(bars);
-        } else if (isSpeaking) {
-            // Fake waveform for TTS
-            const bars = new Array(20).fill(0).map(() => Math.random() * 0.8 + 0.2);
-            setWaveform(bars);
-        } else {
-            setWaveform(new Array(20).fill(0.1)); // Idle low hum
-        }
-        animationFrameRef.current = requestAnimationFrame(updateWaveform);
-    }, [isListening, isSpeaking]);
-
+    // --- SPEECH RECOGNITION ---
     useEffect(() => {
-        animationFrameRef.current = requestAnimationFrame(updateWaveform);
-        return () => {
-            if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-        };
-    }, [updateWaveform]);
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+            recognitionRef.current = new SpeechRecognition();
+            recognitionRef.current.continuous = true;
+            recognitionRef.current.interimResults = true;
 
-    // --- TTS & Typing Sync ---
+            recognitionRef.current.onresult = (event: any) => {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    }
+                }
+                if (finalTranscript) {
+                    setUserInput(prev => prev + ' ' + finalTranscript);
+                }
+            };
 
-    const speakAndType = useCallback((text: string) => {
-        setIsSpeaking(true);
+            recognitionRef.current.onerror = (event: any) => {
+                console.error("Speech recognition error", event.error);
+                setIsListening(false);
+            };
+
+            recognitionRef.current.onend = () => {
+                if (isListening) {
+                    // recognitionRef.current.start(); 
+                }
+            };
+        }
+    }, []);
+
+    // Toggle Listening
+    const toggleListening = () => {
+        if (isListening) {
+            recognitionRef.current?.stop();
+            setIsListening(false);
+        } else {
+            recognitionRef.current?.start();
+            setIsListening(true);
+            if (audioEnabled) {
+                startVisualizer();
+            }
+        }
+    };
+
+    // --- TTS & TYPING SYNC ---
+    const speakAndType = (text: string) => {
+        synthRef.current.cancel();
         setIsTypingOutput(true);
+        setIsSpeaking(true);
         setDisplayedText('');
 
-        // TTS
-        if (audioEnabled && synthRef.current) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 0.9;
-            utterance.pitch = 0.7; // Deep/Tech-priest
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.9;
+        utterance.pitch = 0.8;
 
-            // Try to find a good voice
-            const voices = synthRef.current.getVoices();
-            const preferredVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Microsoft David'));
-            if (preferredVoice) utterance.voice = preferredVoice;
+        const voices = synthRef.current.getVoices();
+        const techVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('David')) || voices[0];
+        if (techVoice) utterance.voice = techVoice;
 
-            utterance.onend = () => {
-                setIsSpeaking(false);
-            };
-
-            synthRef.current.speak(utterance);
-        } else {
-            // Fallback if audio disabled: just simulate time
-            setTimeout(() => setIsSpeaking(false), text.length * 50);
-        }
-
-        // Typing Animation
-        let currentIndex = 0;
-        // Estimate duration: ~50ms per char, but sync with TTS if possible.
-        // Since we can't get exact TTS duration upfront, we'll use a fixed pace that "feels" right with the rate 0.9
-        const typingInterval = setInterval(() => {
-            if (currentIndex <= text.length) {
-                setDisplayedText(text.substring(0, currentIndex));
-                currentIndex++;
-            } else {
-                clearInterval(typingInterval);
-                setIsTypingOutput(false);
-            }
-        }, 50); // 50ms per char
-
-    }, [audioEnabled]);
-
-    // --- Interaction Logic ---
-
-    const handleSendMessage = async () => {
-        if (!inputText.trim()) return;
-
-        const userMsg: Message = {
-            id: generateId(),
-            text: inputText,
-            sender: 'user',
-            mode: isListening ? 'voice' : 'text',
-            timestamp: Date.now()
+        utterance.onend = () => {
+            setIsSpeaking(false);
+            setDisplayedText(text);
+            setIsTypingOutput(false);
         };
 
-        setMessages(prev => [...prev, userMsg]);
-        setInputText('');
-        setIsLoading(true);
+        if (audioEnabled) {
+            synthRef.current.speak(utterance);
+        }
+
+        // Typing Logic
+        let i = 0;
+        const baseDelay = 50;
+
+        const typeChar = () => {
+            if (i < text.length) {
+                setDisplayedText(prev => prev + text.charAt(i));
+                i++;
+                const randomDelay = baseDelay + (Math.random() * 20 - 10);
+                const char = text.charAt(i - 1);
+                const extraDelay = (char === '.' || char === ',' || char === '!' || char === '?') ? 300 : 0;
+
+                setTimeout(typeChar, randomDelay + extraDelay);
+            } else {
+                if (!audioEnabled) {
+                    setIsTypingOutput(false);
+                }
+            }
+        };
+        typeChar();
+    };
+
+    // --- GEMINI INTEGRATION ---
+    const captureScreen = async (): Promise<string | null> => {
+        if (containerRef.current) {
+            try {
+                const canvas = await html2canvas(containerRef.current, {
+                    backgroundColor: '#000000',
+                    scale: 0.5
+                });
+                return canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+            } catch (e) {
+                console.error("Screen capture failed", e);
+                return null;
+            }
+        }
+        return null;
+    };
+
+    const handleSendMessage = async () => {
+        if (!userInput.trim()) return;
+
+        const currentInput = userInput;
+        setUserInput('');
+        setIsProcessing(true);
+
+        // Add user message to history
+        const newHistory = [...conversationHistory, { role: 'user' as const, parts: [{ text: currentInput }] }];
+        setConversationHistory(newHistory);
+
+        // ========== CLIENT-SIDE PASSWORD VALIDATION ==========
+        const isValid = isValidPassword(currentInput);
+
+        let responseText = '';
+        let isSuccess = false;
+
+        if (isValid) {
+            // ✅ SUCCESS - Valid password
+            isSuccess = true;
+            responseText = getSuccessMessage(mistakeCount);
+        } else {
+            // ❌ HERESY - Invalid password
+            const newMistakeCount = mistakeCount + 1;
+            setMistakeCount(newMistakeCount);
+            setHeresyLevel(prev => Math.min(6, prev + 1));
+
+            responseText = `I sense heresy... ${getHeresyMessage()}`;
+
+            if (newMistakeCount >= 3) {
+                responseText += " How about you join the community? Then tell me what the community name is.";
+            }
+        }
 
         try {
-            // Call Gemini
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [
-                        {
-                            role: "user",
-                            parts: [{ text: SYSTEM_INSTRUCTION + "\n\nUser said: " + userMsg.text }]
-                        }
-                    ]
-                })
-            });
+            // Capture screen for spatial awareness
+            const screenImage = await captureScreen();
 
-            const data = await response.json();
-            const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "System Error: Neural Link Severed.";
+            // Update conversation history
+            setConversationHistory([...newHistory, { role: 'model', parts: [{ text: responseText }] }]);
 
-            setIsLoading(false);
-
-            // Parse Response
-            let finalMessage = aiText;
-            let isSuccess = false;
-
-            if (aiText.startsWith("SUCCESS:")) {
-                const parts = aiText.split(':');
-                // SUCCESS:[mistakes]:[message]
-                // parts[0] = SUCCESS
-                // parts[1] = mistakes count
-                // parts[2...] = message
-                const msg = parts.slice(2).join(':');
-                finalMessage = msg;
-                isSuccess = true;
-            } else if (aiText.includes("heresy")) {
-                setMistakeCount(prev => {
-                    const newCount = prev + 1;
-                    if (newCount >= 3) setShowXButton(true);
-                    return newCount;
-                });
-                setHeresyLevel(prev => Math.min(prev + 1, 6));
-            }
-
-            // Add AI Message (placeholder for history, but displayed via animation)
-            const aiMsg: Message = {
-                id: generateId(),
-                text: finalMessage,
-                sender: 'leandros',
-                mode: 'text', // AI always "types" visually
-                timestamp: Date.now()
-            };
-            setMessages(prev => [...prev, aiMsg]);
-
-            // Trigger Output
-            speakAndType(finalMessage);
+            // Output to user
+            speakAndType(responseText);
 
             if (isSuccess) {
-                setTimeout(() => {
-                    setStep('SUCCESS');
-                    // Trigger success sequence
-                    speakAndType("Redirecting to main system...");
-                    setTimeout(onSuccess, 4000);
-                }, finalMessage.length * 50 + 1000);
+                setTimeout(onSuccess, 3000); // Navigate to main page after success
             }
 
         } catch (error) {
-            console.error("Gemini Error", error);
-            setIsLoading(false);
-            speakAndType("Critical Failure: Unable to contact Machine Spirit. Check your API Key.");
+            console.error("System Error:", error);
+            setConversationHistory([...newHistory, { role: 'model', parts: [{ text: responseText }] }]);
+            speakAndType(responseText);
+
+            if (isSuccess) {
+                setTimeout(onSuccess, 3000);
+            }
+        } finally {
+            setIsProcessing(false);
         }
     };
 
-    // --- Render Helpers ---
+    // --- EFFECTS ---
+    useEffect(() => {
+        if (step === 'CHAT' && conversationHistory.length === 0) {
+            speakAndType("Greetings, aspirant. Identify yourself. What is the password?");
+        }
+    }, [step]);
 
-    const renderWaveform = () => (
-        <div className="flex items-end gap-[2px] h-6">
-            {waveform.map((val, i) => (
-                <div
-                    key={i}
-                    className={`w-1.5 transition-all duration-75 ${heresyLevel > 2 ? 'bg-red-500' : 'bg-cyan-400'}`}
-                    style={{ height: `${Math.max(10, val * 100)}%`, opacity: Math.max(0.3, val) }}
-                ></div>
-            ))}
-        </div>
-    );
+    useEffect(() => {
+        setIsApiKeyValid(apiKey.length > 10 && apiKey.startsWith('AI'));
+    }, [apiKey]);
 
-    // --- Views ---
-
-    if (step === 'API_KEY') {
-        return (
-            <div className="min-h-screen bg-black text-cyan-400 font-mono p-4 flex items-center justify-center">
-                <div className="w-full max-w-lg border-2 border-cyan-800 bg-gray-900/90 shadow-[0_0_20px_rgba(0,255,255,0.1)]">
-                    {/* Header */}
-                    <div className="bg-cyan-900/30 border-b border-cyan-800 p-2 flex justify-between items-center">
-                        <span>KRACKED DEV :: AUTH SYSTEM v1.0</span>
-                        <div className="flex gap-2">
-                            <div className="w-3 h-3 border border-cyan-600"></div>
-                            <div className="w-3 h-3 border border-cyan-600 bg-cyan-600"></div>
-                        </div>
-                    </div>
-                    {/* Content */}
-                    <div className="p-6 space-y-6">
-                        <div className="space-y-2">
-                            <p>{'>'} SYSTEM INITIALIZATION...</p>
-                            <p className="animate-pulse">{'>'} API KEY REQUIRED</p>
-                        </div>
-
-                        <div className="border border-cyan-700 p-4 bg-black">
-                            <label className="block text-xs mb-2 opacity-70">Put Power key here</label>
-                            <input
-                                type="password"
-                                value={apiKey}
-                                onChange={(e) => setApiKey(e.target.value)}
-                                className="w-full bg-transparent border-b border-cyan-500 focus:outline-none focus:border-cyan-300 font-mono text-white"
-                                placeholder="AIza..."
-                            />
-                        </div>
-
-                        <div className="flex justify-between items-end">
-                            <div className="text-xs opacity-50">
-                                [STATUS] Awaiting input...<br />
-                                MEM: 64K | CPU: OK
-                            </div>
-                            <button
-                                onClick={() => apiKey && setStep('AUDIO_PERM')}
-                                disabled={!apiKey}
-                                className={`px-4 py-2 border border-cyan-500 hover:bg-cyan-900/50 transition-colors ${!apiKey ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            >
-                                {'>'} INITIALIZE
-                            </button>
-                        </div>
-
-                        <div className="border-t border-cyan-800 pt-4 mt-4">
-                            <p className="text-xs mb-2">[HELP] Need access? Join community</p>
-                            <a href="https://x.com/i/communities/1983062242292822298" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-3 py-1 border border-cyan-700 hover:bg-cyan-900/30 text-xs">
-                                <span className="font-bold">X</span> Community Link
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (step === 'AUDIO_PERM') {
-        return (
-            <div className="min-h-screen bg-black text-cyan-400 font-mono p-4 flex items-center justify-center">
-                <div className="w-full max-w-lg border-2 border-cyan-800 bg-gray-900/90">
-                    <div className="bg-cyan-900/30 border-b border-cyan-800 p-2 flex justify-between items-center">
-                        <span>CRACKED DEV :: AUDIO SYSTEM INIT</span>
-                    </div>
-                    <div className="p-8 text-center space-y-8">
-                        <p>{'>'} INITIALIZING AUDIO PROTOCOLS...</p>
-
-                        <div className="border border-cyan-700 p-6 bg-black/50">
-                            <button
-                                onClick={() => {
-                                    setAudioEnabled(true);
-                                    startAudioVisualizer();
-                                    setStep('DUAL_INIT');
-                                }}
-                                className="w-full py-4 border-2 border-cyan-500 hover:bg-cyan-500/10 flex flex-col items-center gap-2 group"
-                            >
-                                <Mic size={32} className="group-hover:scale-110 transition-transform" />
-                                <span className="font-bold text-lg">ENABLE MICROPHONE</span>
-                            </button>
-                            <p className="text-xs mt-4 opacity-70">Leandros needs to hear you (Optional)</p>
-                        </div>
-
-                        <button
-                            onClick={() => {
-                                setAudioEnabled(false);
-                                setStep('DUAL_INIT');
-                            }}
-                            className="text-xs hover:underline opacity-50 hover:opacity-100"
-                        >
-                            SKIP - TYPE ONLY
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (step === 'DUAL_INIT') {
-        // Auto-transition after a brief "system ready" screen
-        setTimeout(() => {
-            setStep('CHAT');
-            // Trigger initial greeting
-            speakAndType("Hello there! Password please?");
-        }, 2000);
-
-        return (
-            <div className="min-h-screen bg-black text-cyan-400 font-mono p-4 flex items-center justify-center">
-                <div className="w-full max-w-lg border-2 border-cyan-800 bg-gray-900/90 p-8 text-center space-y-6">
-                    <div className="animate-pulse text-xl font-bold">SYSTEM READY</div>
-                    <div className="flex justify-center gap-8 opacity-70">
-                        <div className="flex flex-col items-center gap-2">
-                            <Mic /> <span>VOICE: READY</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-2">
-                            <Terminal /> <span>TEXT: READY</span>
-                        </div>
-                    </div>
-                    <div className="text-xs opacity-50 mt-8">
-                        [LEANDROS_AI] Status: STANDBY<br />
-                        [AUDIO_OUT] Speaker: ACTIVE
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // --- CHAT INTERFACE ---
-
-    const borderColor = heresyLevel > 0 ? (heresyLevel > 3 ? 'border-red-600' : 'border-orange-500') : 'border-cyan-800';
-    const textColor = heresyLevel > 0 ? (heresyLevel > 3 ? 'text-red-500' : 'text-orange-400') : 'text-cyan-400';
-    const bgColor = heresyLevel > 3 ? 'bg-red-950/20' : 'bg-gray-900/90';
-
+    // --- RENDER ---
     return (
-        <div className={`min-h-screen bg-black ${textColor} font-mono p-2 md:p-4 flex items-center justify-center transition-colors duration-1000`}>
-            {/* Glitch Overlay for Heresy */}
-            {heresyLevel > 4 && (
-                <div className="fixed inset-0 pointer-events-none opacity-10 bg-noise z-50 mix-blend-overlay"></div>
+        <div ref={containerRef} className={`fixed inset-0 z-[100] bg-black text-cyan-500 font-mono flex flex-col items-center justify-center p-4 transition-colors duration-500 ${heresyLevel > 0 ? 'shadow-[inset_0_0_100px_rgba(255,0,0,0.2)]' : ''}`}>
+
+            {/* HERESY OVERLAY */}
+            {heresyLevel > 0 && (
+                <div className="absolute inset-0 pointer-events-none opacity-20 bg-red-900 mix-blend-overlay animate-pulse"></div>
             )}
 
-            <div className={`w-full max-w-2xl border-2 ${borderColor} ${bgColor} shadow-2xl flex flex-col h-[80vh] transition-all duration-500 relative overflow-hidden`}>
+            {/* MAIN TERMINAL WINDOW */}
+            <div className={`relative w-full max-w-3xl h-[80vh] border-4 ${heresyLevel > 2 ? 'border-red-600' : 'border-cyan-800'} bg-black p-1 flex flex-col shadow-[0_0_50px_rgba(0,255,255,0.1)]`}>
 
-                {/* Header */}
-                <div className={`border-b ${borderColor} p-2 flex justify-between items-center bg-black/40`}>
-                    <span className="flex items-center gap-2">
-                        {heresyLevel > 0 && <AlertTriangle size={14} />}
-                        LEANDROS AI :: AUTH PROTOCOL v2.1
-                    </span>
+                {/* Window Header */}
+                <div className={`h-8 ${heresyLevel > 2 ? 'bg-red-900/50' : 'bg-cyan-900/30'} border-b ${heresyLevel > 2 ? 'border-red-600' : 'border-cyan-800'} flex justify-between items-center px-2 mb-2`}>
+                    <span className="text-xs tracking-widest">KRACKED DEV :: AUTH SYSTEM v1.0</span>
                     <div className="flex gap-2">
-                        <div className={`w-3 h-3 border ${borderColor}`}></div>
-                        <div className={`w-3 h-3 border ${borderColor} bg-current`}></div>
+                        {/* API Status Indicator */}
+                        <div className={`w-3 h-3 rounded-full ${isApiKeyValid ? 'bg-green-500 shadow-[0_0_5px_#00ff00]' : 'bg-red-500 shadow-[0_0_5px_#ff0000]'} transition-colors duration-300`} title={isApiKeyValid ? "API Online" : "API Offline"}></div>
                     </div>
                 </div>
 
-                {/* Chat Area */}
-                <div className="flex-1 p-4 overflow-y-auto space-y-6 scrollbar-hide">
-                    {/* History (only show last few or just current interaction context?) 
-                        Prompt implies a continuous chat feel but focused on the current interaction.
-                        Let's show history.
-                    */}
-                    {messages.map((msg) => (
-                        <div key={msg.id} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
-                            <div className={`max-w-[80%] ${msg.sender === 'user' ? 'text-right opacity-80' : ''}`}>
-                                <div className="text-xs opacity-50 mb-1 flex items-center gap-2">
-                                    {msg.sender === 'leandros' ? <Cpu size={12} /> : (msg.mode === 'voice' ? <Mic size={12} /> : <Terminal size={12} />)}
-                                    {msg.sender === 'leandros' ? 'LEANDROS_AI' : 'YOU'}
-                                </div>
-                                {/* If it's the latest AI message and typing is active, don't show it here, show in the dedicated typing area below? 
-                                    Actually, let's render it here. If it's the *very last* message and we are typing, we render `displayedText` instead of `msg.text`.
-                                */}
-                                {msg.sender === 'leandros' && msg.id === messages[messages.length - 1].id && isTypingOutput ? (
-                                    <div className="typing-text">
-                                        {displayedText}<span className="animate-pulse">█</span>
-                                    </div>
-                                ) : (
-                                    <div>{msg.text}</div>
-                                )}
-                            </div>
-                        </div>
-                    ))}
+                {/* Content Area */}
+                <div className="flex-1 overflow-hidden relative p-4 flex flex-col">
 
-                    {/* Loading Indicator */}
-                    {isLoading && (
-                        <div className="flex items-center gap-2 opacity-50">
-                            <div className="animate-spin"><Activity size={16} /></div>
-                            <span>Processing...</span>
+                    {/* STEP 1: API KEY */}
+                    {step === 'API_KEY' && (
+                        <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-fade-in">
+                            <div className="text-4xl mb-4">
+                                <Cpu size={64} className="animate-pulse" />
+                            </div>
+                            <div className="text-center space-y-2">
+                                <h2 className="text-xl font-bold">INITIALIZING COGITATOR...</h2>
+                                <p className="opacity-70 text-sm">Machine Spirit requires authentication key.</p>
+                            </div>
+
+                            <div className="w-full max-w-md border border-cyan-700 p-4 bg-black/50 relative group">
+                                <label className="block text-xs mb-2 opacity-70">Put Power key here</label>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="password"
+                                        value={apiKey}
+                                        onChange={(e) => setApiKey(e.target.value)}
+                                        className="w-full bg-transparent border-b border-cyan-500 focus:outline-none focus:border-cyan-300 font-mono text-center tracking-widest"
+                                        placeholder="AIzaSy..."
+                                    />
+                                    <div className={`w-2 h-2 rounded-full ${isApiKeyValid ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => setStep('AUDIO_PERM')}
+                                disabled={!isApiKeyValid}
+                                className={`px-8 py-2 border border-cyan-500 hover:bg-cyan-500/20 transition-all ${!isApiKeyValid ? 'opacity-50 cursor-not-allowed' : 'animate-pulse'}`}
+                            >
+                                [ INITIATE RITE ]
+                            </button>
                         </div>
                     )}
 
-                    <div ref={chatEndRef} />
-                </div>
-
-                {/* Active Status / Waveform */}
-                <div className={`border-t ${borderColor} p-4 bg-black/20`}>
-                    <div className="flex items-center justify-between mb-4 h-8">
-                        <div className="flex items-center gap-4">
-                            {isSpeaking || isListening ? (
-                                <div className="flex items-center gap-2">
-                                    {isSpeaking ? <Volume2 size={16} className="animate-pulse" /> : <Mic size={16} className="text-green-500 animate-pulse" />}
-                                    <span className="text-xs">{isSpeaking ? 'SPEAKING' : 'LISTENING'}</span>
-                                </div>
-                            ) : (
-                                <span className="text-xs opacity-30">IDLE</span>
-                            )}
-                            {/* Waveform */}
-                            {renderWaveform()}
+                    {/* STEP 2: AUDIO PERMISSION */}
+                    {step === 'AUDIO_PERM' && (
+                        <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-fade-in">
+                            <Volume2 size={64} className="animate-bounce" />
+                            <div className="text-center space-y-2">
+                                <h2 className="text-xl font-bold">VOX MODULE REQUIRED</h2>
+                                <p className="opacity-70 text-sm">Enable audio sensors for optimal interrogation?</p>
+                            </div>
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => { setAudioEnabled(true); setStep('DUAL_INIT'); }}
+                                    className="px-6 py-2 border border-green-500 text-green-500 hover:bg-green-500/20"
+                                >
+                                    [ ENABLE VOX ]
+                                </button>
+                                <button
+                                    onClick={() => { setAudioEnabled(false); setStep('DUAL_INIT'); }}
+                                    className="px-6 py-2 border border-red-500 text-red-500 hover:bg-red-500/20"
+                                >
+                                    [ SILENCE ]
+                                </button>
+                            </div>
                         </div>
+                    )}
 
-                        {/* X Button for 3rd Fail */}
-                        {showXButton && (
-                            <a
-                                href="https://x.com/i/communities/1983062242292822298"
-                                target="_blank"
-                                rel="noreferrer"
-                                className="flex items-center gap-2 px-3 py-1 border border-red-500 text-red-500 hover:bg-red-900/50 text-xs animate-pulse"
-                            >
-                                <Skull size={14} /> JOIN COMMUNITY
-                            </a>
-                        )}
-                    </div>
+                    {/* STEP 3: DUAL INIT (Loading) */}
+                    {step === 'DUAL_INIT' && (
+                        <div className="flex-1 flex flex-col items-center justify-center gap-4 animate-fade-in">
+                            <div className="w-64 h-2 bg-cyan-900 rounded overflow-hidden">
+                                <div className="h-full bg-cyan-400 animate-progress-loading"></div>
+                            </div>
+                            <p className="text-xs animate-pulse">CALIBRATING SENSORS...</p>
+                            {/* Auto transition */}
+                            {setTimeout(() => setStep('CHAT'), 2000) && null}
+                        </div>
+                    )}
 
-                    {/* Input Area */}
-                    <div className="flex gap-2">
-                        {/* Voice Button */}
-                        <button
-                            onMouseDown={() => {
-                                setIsListening(true);
-                                recognitionRef.current?.start();
-                            }}
-                            onMouseUp={() => {
-                                setIsListening(false);
-                                recognitionRef.current?.stop();
-                                // Optional: Auto-send on release? Or just stop listening and let user click send?
-                                // Prompt says "Release or auto-stop on silence".
-                                // Let's auto-send after a brief pause if we have text?
-                                // Actually, let's just let the user click send or press enter for now to be safe, 
-                                // OR if they were holding the button, maybe we assume they finished.
-                            }}
-                            className={`p-3 border ${isListening ? 'border-green-500 text-green-500 bg-green-500/10' : 'border-cyan-700 hover:bg-cyan-900/30'} transition-colors`}
-                        >
-                            <Mic size={20} />
-                        </button>
+                    {/* STEP 4: CHAT INTERFACE */}
+                    {step === 'CHAT' && (
+                        <div className="flex-1 flex flex-col h-full">
 
-                        {/* Text Input */}
-                        <div className="flex-1 relative">
-                            <input
-                                type="text"
-                                value={inputText}
-                                onChange={(e) => setInputText(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                                placeholder={isListening ? "Listening..." : "Type or hold mic..."}
-                                className={`w-full h-full bg-transparent border ${borderColor} px-4 font-mono focus:outline-none focus:bg-white/5 transition-colors`}
-                                disabled={isListening}
-                            />
-                            {inputText && (
+                            {/* Output Area */}
+                            <div className="flex-1 overflow-y-auto mb-4 p-4 border border-cyan-900/50 bg-black/50 font-retro leading-relaxed">
+                                {conversationHistory.map((msg, i) => (
+                                    <div key={i} className={`mb-4 ${msg.role === 'user' ? 'text-right opacity-70' : 'text-left'}`}>
+                                        <span className="text-xs opacity-50 block mb-1">{msg.role === 'user' ? '>> ASPIRANT' : '>> MAGOS LEANDROS'}</span>
+                                        {msg.role === 'user' ? msg.parts[0].text : (i === conversationHistory.length - 1 && isTypingOutput ? displayedText : msg.parts[0].text)}
+                                        {msg.role === 'model' && i === conversationHistory.length - 1 && isTypingOutput && <span className="animate-pulse">█</span>}
+                                    </div>
+                                ))}
+                                {isProcessing && <div className="text-xs animate-pulse text-cyan-700">&gt;&gt; PROCESSING...</div>}
+                            </div>
+
+                            {/* Visualizer & Status */}
+                            <div className="h-16 mb-4 flex items-end justify-center gap-1 opacity-80">
+                                {waveform.map((val, i) => (
+                                    <div
+                                        key={i}
+                                        className={`w-2 bg-cyan-500 transition-all duration-75 ${heresyLevel > 0 ? 'bg-red-500' : ''}`}
+                                        style={{ height: `${Math.max(4, val * 60)}px` }}
+                                    ></div>
+                                ))}
+                            </div>
+
+                            {/* Input Area */}
+                            <div className="flex gap-2 items-end">
+                                <button
+                                    onClick={toggleListening}
+                                    className={`p-4 border-2 transition-all ${isListening ? 'border-red-500 bg-red-900/20 animate-pulse' : 'border-cyan-700 hover:bg-cyan-900/20'}`}
+                                    title={isListening ? "Stop Listening" : "Start Listening"}
+                                >
+                                    <Mic size={24} className={isListening ? 'text-red-500' : 'text-cyan-500'} />
+                                </button>
+
+                                <div className="flex-1 relative">
+                                    <input
+                                        type="text"
+                                        value={userInput}
+                                        onChange={(e) => setUserInput(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                                        className="w-full bg-black border-2 border-cyan-700 p-3 pr-10 focus:outline-none focus:border-cyan-400 font-mono"
+                                        placeholder="Type your response..."
+                                    />
+                                    <Eye size={16} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50" title="Vision Active" />
+                                </div>
+
                                 <button
                                     onClick={handleSendMessage}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 hover:text-white"
+                                    disabled={!userInput.trim() && !isListening}
+                                    className="p-4 border-2 border-cyan-700 hover:bg-cyan-900/20 disabled:opacity-50"
                                 >
-                                    <Send size={16} />
+                                    <Send size={24} />
                                 </button>
+                            </div>
+
+                            {/* Heresy Status */}
+                            {heresyLevel > 0 && (
+                                <div className="mt-2 text-xs text-red-500 flex justify-between">
+                                    <span>HERESY LEVEL: {'☠'.repeat(heresyLevel)}</span>
+                                    {heresyLevel >= 3 && (
+                                        <a href="https://x.com/i/communities/1983062242292822298" target="_blank" rel="noopener noreferrer" className="underline hover:text-red-300">
+                                            [ SEEK REDEMPTION ]
+                                        </a>
+                                    )}
+                                </div>
                             )}
                         </div>
-                    </div>
+                    )}
 
-                    {/* Footer Status */}
-                    <div className="flex justify-between text-[10px] mt-2 opacity-40 uppercase">
-                        <span>AUTH: {mistakeCount}/6</span>
-                        <span>HERESY: {'█'.repeat(heresyLevel)}{'░'.repeat(6 - heresyLevel)}</span>
-                        <span>{isListening ? 'MIC: ON' : 'MIC: OFF'}</span>
-                    </div>
                 </div>
             </div>
         </div>

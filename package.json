@@ -9,11 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "html2canvas": "^1.4.1",
     "lucide-react": "^0.555.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@types/html2canvas": "^0.5.35",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.22",
