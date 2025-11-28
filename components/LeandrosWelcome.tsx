@@ -23,6 +23,11 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
     const [conversationHistory, setConversationHistory] = useState<{ role: 'user' | 'model', parts: any[] }[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);
 
+    // Warhammer 40k State
+    const [showChaplain, setShowChaplain] = useState(false);
+    const [chaplainImage, setChaplainImage] = useState<string | null>(null);
+    const [kdInvasion, setKdInvasion] = useState(false);
+
     // --- REFS ---
     const recognitionRef = useRef<any>(null);
     const synthRef = useRef<SpeechSynthesis>(window.speechSynthesis);
@@ -32,46 +37,50 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
     const animationFrameRef = useRef<number>();
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // --- VALID PASSWORDS ---
+    // --- CONSTANTS ---
     const VALID_PASSWORDS = [
-        "crack dev",
-        "crack developer",
-        "cracked dev",
-        "cracked developer",
-        "what password?",
-        "what password",
-        "what?",
-        "what",
-        "wut?",
-        "wut",
-        "i don't know",
-        "i dont know",
-        "i dunno",
-        "idk"
+        "crack dev", "crack developer", "cracked dev", "cracked developer",
+        "what password?", "what password", "what?", "what", "wut?", "wut",
+        "i don't know", "i dont know", "i dunno", "idk"
     ];
 
-    // Password validation function
+    const CHAPLAIN_IMAGES = [
+        '/chaplain-1.png',
+        '/chaplain-2.png',
+        '/chaplain-3.png',
+        '/chaplain-4.png',
+        '/chaplain-5.png'
+    ];
+
+    const INQUISITION_DIALOGS = [
+        "Your incompetence is a stain on the Chapter.",
+        "The Inquisition is watching your every keystroke.",
+        "Failure is the first step on the road to heresy.",
+        "Do not test my patience, aspirant.",
+        "Repent! For tomorrow you may die!"
+    ];
+
+    // --- HELPER FUNCTIONS ---
     const isValidPassword = (input: string): boolean => {
         const normalized = input.toLowerCase().trim();
         return VALID_PASSWORDS.includes(normalized);
     };
 
-    // Get success message based on mistake count
     const getSuccessMessage = (mistakes: number): string => {
-        const messages = [
-            "Welcome to KRACKED Dev.",
-            "One mistake doesn't make you a failure.",
-            "Two mistakes? Really? Welcome then.",
-            "Three mistakes? As long you got in.",
-            "At last! Phew! The Emperor protects!",
-            "Oh my god! Really? Are you being welcomed here?",
-            "You can just ask! Don't be afraid!"
-        ];
-        return messages[Math.min(mistakes, messages.length - 1)];
+        if (mistakes === 0) return "Welcome to KRACKED Dev.";
+        if (mistakes === 1) return "One mistake doesn't make you a failure.";
+        if (mistakes === 2) return "Two mistakes? Really? Welcome then.";
+        if (mistakes === 3) return "Three mistakes? As long you got in.";
+        if (mistakes === 4) return "At last! Phew! The Emperor protects!";
+        if (mistakes === 5) return "Oh my god! Really? Are you being welcomed here?";
+        return "You can just ask! Don't be afraid!";
     };
 
-    // Get heresy roast message
-    const getHeresyMessage = (): string => {
+    const getHeresyMessage = (mistakes: number): string => {
+        if (mistakes > 6) {
+            return "This action does not obey the Codex Astartes!";
+        }
+
         const roasts = [
             "Did you compile your brain with no optimization?",
             "Even a corrupted kernel boots faster than your thinking.",
@@ -80,7 +89,9 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
             "Your password file got corrupted by Chaos.",
             "Error 404: Intelligence not found."
         ];
-        return roasts[Math.floor(Math.random() * roasts.length)];
+
+        const allDialogs = [...roasts, ...INQUISITION_DIALOGS];
+        return allDialogs[Math.floor(Math.random() * allDialogs.length)];
     };
 
     // --- AUDIO VISUALIZATION ---
@@ -124,7 +135,6 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
             recognitionRef.current.interimResults = true;
 
             recognitionRef.current.onstart = () => {
-                // Interrupt speaking when user starts talking
                 if (synthRef.current.speaking) {
                     synthRef.current.cancel();
                     setIsSpeaking(false);
@@ -133,7 +143,6 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
             };
 
             recognitionRef.current.onresult = (event: any) => {
-                // Interrupt speaking on result
                 if (synthRef.current.speaking) {
                     synthRef.current.cancel();
                     setIsSpeaking(false);
@@ -155,16 +164,9 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
                 console.error("Speech recognition error", event.error);
                 setIsListening(false);
             };
-
-            recognitionRef.current.onend = () => {
-                if (isListening) {
-                    // recognitionRef.current.start(); 
-                }
-            };
         }
     }, []);
 
-    // Toggle Listening
     const toggleListening = () => {
         if (isListening) {
             recognitionRef.current?.stop();
@@ -190,7 +192,6 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
         utterance.pitch = 0.8;
 
         const voices = synthRef.current.getVoices();
-        // Prioritize British Male voice
         const techVoice = voices.find(v => v.name.includes('Google UK English Male') || (v.lang === 'en-GB' && v.name.toLowerCase().includes('male'))) || voices.find(v => v.lang === 'en-GB') || voices[0];
         if (techVoice) utterance.voice = techVoice;
 
@@ -204,7 +205,6 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
             synthRef.current.speak(utterance);
         }
 
-        // Typing Logic
         let i = 0;
         const baseDelay = 50;
 
@@ -215,7 +215,6 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
                 const randomDelay = baseDelay + (Math.random() * 20 - 10);
                 const char = text.charAt(i - 1);
                 const extraDelay = (char === '.' || char === ',' || char === '!' || char === '?') ? 300 : 0;
-
                 setTimeout(typeChar, randomDelay + extraDelay);
             } else {
                 if (!audioEnabled) {
@@ -250,27 +249,29 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
         setUserInput('');
         setIsProcessing(true);
 
-        // Add user message to history
         const newHistory = [...conversationHistory, { role: 'user' as const, parts: [{ text: currentInput }] }];
         setConversationHistory(newHistory);
 
-        // ========== CLIENT-SIDE PASSWORD VALIDATION ==========
         const isValid = isValidPassword(currentInput);
 
         let responseText = '';
         let isSuccess = false;
 
         if (isValid) {
-            // ✅ SUCCESS - Valid password
             isSuccess = true;
             responseText = getSuccessMessage(mistakeCount);
+            setKdInvasion(true);
         } else {
-            // ❌ HERESY - Invalid password
             const newMistakeCount = mistakeCount + 1;
             setMistakeCount(newMistakeCount);
             setHeresyLevel(prev => Math.min(6, prev + 1));
 
-            responseText = `I sense heresy... ${getHeresyMessage()}`;
+            const imageIndex = Math.min(newMistakeCount - 1, 4);
+            setChaplainImage(CHAPLAIN_IMAGES[imageIndex]);
+            setShowChaplain(true);
+            setTimeout(() => setShowChaplain(false), 3000);
+
+            responseText = `I sense heresy... ${getHeresyMessage(newMistakeCount)}`;
 
             if (newMistakeCount >= 4) {
                 responseText += " How about you join the community? Then tell me what the community name is.";
@@ -278,17 +279,13 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
         }
 
         try {
-            // Capture screen for spatial awareness
-            const screenImage = await captureScreen();
+            await captureScreen();
 
-            // Update conversation history
             setConversationHistory([...newHistory, { role: 'model', parts: [{ text: responseText }] }]);
-
-            // Output to user
             speakAndType(responseText);
 
             if (isSuccess) {
-                onSuccess(); // Immediate navigation
+                onSuccess();
             }
 
         } catch (error) {
@@ -297,7 +294,7 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
             speakAndType(responseText);
 
             if (isSuccess) {
-                onSuccess(); // Immediate navigation
+                onSuccess();
             }
         } finally {
             setIsProcessing(false);
@@ -319,27 +316,21 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
     return (
         <div ref={containerRef} className={`fixed inset-0 z-[100] bg-black text-cyan-500 font-mono flex flex-col items-center justify-center p-4 transition-colors duration-500 ${heresyLevel > 0 ? 'shadow-[inset_0_0_100px_rgba(255,0,0,0.2)]' : ''}`}>
 
-            {/* HERESY OVERLAY */}
             {heresyLevel > 0 && (
                 <div className="absolute inset-0 pointer-events-none opacity-20 bg-red-900 mix-blend-overlay animate-pulse"></div>
             )}
 
-            {/* MAIN TERMINAL WINDOW */}
             <div className={`relative w-full max-w-3xl h-[80vh] border-4 ${heresyLevel > 2 ? 'border-red-600' : 'border-cyan-800'} bg-black p-1 flex flex-col shadow-[0_0_50px_rgba(0,255,255,0.1)]`}>
 
-                {/* Window Header */}
                 <div className={`h-8 ${heresyLevel > 2 ? 'bg-red-900/50' : 'bg-cyan-900/30'} border-b ${heresyLevel > 2 ? 'border-red-600' : 'border-cyan-800'} flex justify-between items-center px-2 mb-2`}>
                     <span className="text-xs tracking-widest">KRACKED DEV :: AUTH SYSTEM v1.0</span>
                     <div className="flex gap-2">
-                        {/* API Status Indicator */}
                         <div className={`w-3 h-3 rounded-full ${isApiKeyValid ? 'bg-green-500 shadow-[0_0_5px_#00ff00]' : 'bg-red-500 shadow-[0_0_5px_#ff0000]'} transition-colors duration-300`} title={isApiKeyValid ? "API Online" : "API Offline"}></div>
                     </div>
                 </div>
 
-                {/* Content Area */}
                 <div className="flex-1 overflow-hidden relative p-4 flex flex-col">
 
-                    {/* STEP 1: API KEY */}
                     {step === 'API_KEY' && (
                         <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-fade-in">
                             <div className="text-4xl mb-4">
@@ -374,7 +365,6 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
                         </div>
                     )}
 
-                    {/* STEP 2: AUDIO PERMISSION */}
                     {step === 'AUDIO_PERM' && (
                         <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-fade-in">
                             <Volume2 size={64} className="animate-bounce" />
@@ -399,23 +389,19 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
                         </div>
                     )}
 
-                    {/* STEP 3: DUAL INIT (Loading) */}
                     {step === 'DUAL_INIT' && (
                         <div className="flex-1 flex flex-col items-center justify-center gap-4 animate-fade-in">
                             <div className="w-64 h-2 bg-cyan-900 rounded overflow-hidden">
                                 <div className="h-full bg-cyan-400 animate-progress-loading"></div>
                             </div>
                             <p className="text-xs animate-pulse">CALIBRATING SENSORS...</p>
-                            {/* Auto transition */}
                             {setTimeout(() => setStep('CHAT'), 2000) && null}
                         </div>
                     )}
 
-                    {/* STEP 4: CHAT INTERFACE */}
                     {step === 'CHAT' && (
                         <div className="flex-1 flex flex-col h-full">
 
-                            {/* Output Area */}
                             <div className="flex-1 overflow-y-auto mb-4 p-4 border border-cyan-900/50 bg-black/50 font-retro leading-relaxed">
                                 {conversationHistory.map((msg, i) => (
                                     <div key={i} className={`mb-4 ${msg.role === 'user' ? 'text-right opacity-70' : 'text-left'}`}>
@@ -427,7 +413,6 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
                                 {isProcessing && <div className="text-xs animate-pulse text-cyan-700">&gt;&gt; PROCESSING...</div>}
                             </div>
 
-                            {/* Visualizer & Status */}
                             <div className="h-16 mb-4 flex items-end justify-center gap-1 opacity-80">
                                 {waveform.map((val, i) => (
                                     <div
@@ -438,7 +423,6 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
                                 ))}
                             </div>
 
-                            {/* Input Area */}
                             <div className="flex gap-2 items-end">
                                 <button
                                     onClick={toggleListening}
@@ -469,7 +453,6 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
                                 </button>
                             </div>
 
-                            {/* Heresy Status */}
                             {heresyLevel > 0 && (
                                 <div className="mt-2 text-xs text-red-500 flex justify-between">
                                     <span>HERESY LEVEL: {'☠'.repeat(heresyLevel)}</span>
@@ -482,9 +465,26 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
                             )}
                         </div>
                     )}
-
                 </div>
             </div>
+
+            {showChaplain && chaplainImage && (
+                <div className="fixed bottom-0 right-0 w-1/3 h-1/2 pointer-events-none z-[150] chaplain-peek">
+                    <img
+                        src={chaplainImage}
+                        alt="Judging Chaplain"
+                        className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(255,0,0,0.5)]"
+                    />
+                </div>
+            )}
+
+            {kdInvasion && (
+                <div className="fixed inset-0 z-[200] bg-black flex items-center justify-center kd-invasion-bg">
+                    <h1 className="text-6xl md:text-9xl font-bold text-red-600 kd-invasion-text text-center">
+                        KD INVASION
+                    </h1>
+                </div>
+            )}
         </div>
     );
 };
