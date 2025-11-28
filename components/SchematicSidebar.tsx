@@ -27,6 +27,7 @@ const SchematicSidebar: React.FC<SchematicSidebarProps> = ({ activeView, theme, 
     const isConsole = theme === 'CONSOLE';
     const isDoodle = theme === 'DOODLE';
     const isRetro = theme === 'RETRO';
+    const isLofi = theme === 'LOFI';
 
     // Drag Logic
     const isDraggingRef = useRef(false);
@@ -63,7 +64,8 @@ const SchematicSidebar: React.FC<SchematicSidebarProps> = ({ activeView, theme, 
                 ${isConsole ? 'border-black bg-white/50 text-black' : ''}
                 ${isDoodle ? 'border-white/50 bg-black/10 text-white font-doodle' : ''}
                 ${isRetro ? 'border-[#ff00ff] bg-[#1a1a2e]/90 text-[#00ff00] font-retro shadow-[0_0_15px_#ff00ff]' : ''}
-                ${!isConsole && !isDoodle && !isRetro ? 'border-kraken-primary/30 bg-kraken-card/50 text-kraken-primary backdrop-blur-sm' : ''}
+                ${isLofi ? 'border-[#f4a582] bg-[#2d1b2e]/90 text-[#f4a582] font-doodle shadow-[0_0_15px_rgba(244,165,130,0.3)]' : ''}
+                ${!isConsole && !isDoodle && !isRetro && !isLofi ? 'border-kraken-primary/30 bg-kraken-card/50 text-kraken-primary backdrop-blur-sm' : ''}
             `}
             style={{
                 left: position.x,

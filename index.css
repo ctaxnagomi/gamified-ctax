@@ -2,55 +2,114 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Scrollbar */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: #0f172a; }
-::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #475569; }
+body {
+  background-color: #000;
+  color: white;
+  overflow: hidden;
+  height: 100vh;
+  margin: 0;
+}
 
-/* CRT Effect for Console Theme */
+/* Custom scrollbar for webkit */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3b82f6;
+  border-radius: 4px;
+}
+
+/* CRT Effect for Console Theme (Dark Scanlines for White BG) */
 .scanlines-white {
-  background: linear-gradient(
-    to bottom,
-    rgba(255,255,255,0),
-    rgba(255,255,255,0) 50%,
-    rgba(0,0,0,0.05) 50%,
-    rgba(0,0,0,0.05)
-  );
+  background: linear-gradient(to bottom,
+      rgba(0, 0, 0, 0),
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, 0.05) 50%,
+      rgba(0, 0, 0, 0.05));
   background-size: 100% 4px;
   pointer-events: none;
 }
 
-/* Doodle Theme Pencil Grid */
+/* CRT Effect for Retro Theme (Light Scanlines for Dark BG) */
+.scanlines-retro {
+  background: linear-gradient(to bottom,
+      rgba(255, 255, 255, 0),
+      rgba(255, 255, 255, 0) 50%,
+      rgba(255, 255, 255, 0.02) 50%,
+      rgba(255, 255, 255, 0.02));
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* VHS Color Bleed Effect */
+.vhs-text {
+  text-shadow:
+    2px 0 0px rgba(255, 0, 0, 0.5),
+    -2px 0 0px rgba(0, 255, 255, 0.5);
+}
+
+/* Pencil Grid Pattern */
 .pencil-grid {
-  background-image: 
-    linear-gradient(#444 1px, transparent 1px),
-    linear-gradient(90deg, #444 1px, transparent 1px);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
   background-size: 20px 20px;
   background-color: #2b2b2b;
 }
 
-/* Key Cap 3D Effect */
+/* Keyboard Button Style */
 .key-cap {
-  box-shadow: 
-    0 4px 0 #111,
-    0 5px 5px rgba(0,0,0,0.5);
+  box-shadow:
+    0 0 0 1px #222,
+    0 4px 0 0 #222,
+    0 4px 0 1px #222,
+    0 4px 5px rgba(0, 0, 0, 0.5);
+  transition: all 0.1s ease;
 }
-.key-cap:active {
-  box-shadow: 
-    0 0 0 #111,
-    inset 0 2px 5px rgba(0,0,0,0.5);
+
+.key-cap:active,
+.key-cap.active {
   transform: translateY(4px);
+  box-shadow:
+    0 0 0 1px #222,
+    0 0 0 0 #222,
+    0 0 0 1px #222,
+    inset 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .key-cap-white {
-  box-shadow: 
-    0 4px 0 #ccc,
-    0 5px 5px rgba(0,0,0,0.1);
+  box-shadow:
+    0 0 0 1px #aaa,
+    0 4px 0 0 #aaa,
+    0 4px 0 1px #aaa,
+    0 4px 5px rgba(0, 0, 0, 0.1);
 }
+
 .key-cap-white:active {
-  box-shadow: 
-    0 0 0 #ccc,
-    inset 0 2px 5px rgba(0,0,0,0.1);
-  transform: translateY(4px);
+  box-shadow:
+    0 0 0 1px #aaa,
+    inset 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Lofi Room Background */
+.lofi-room {
+  background-image: url('/lofi-room.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.lofi-room::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(45, 27, 46, 0.75);
+  pointer-events: none;
 }
