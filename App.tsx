@@ -642,6 +642,8 @@ const MainSystem: React.FC = () => {
                     </div>
                 </div>
             </div>
+            {/* Mini Player Overlay */}
+            <MiniPlayer />
         </div>
     );
 };
