@@ -32,12 +32,8 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
     const [hasInitializedPosition, setHasInitializedPosition] = useState(false);
 
-    // Warhammer 40k State
-    const [showChaplain, setShowChaplain] = useState(false);
-    const [chaplainImage, setChaplainImage] = useState<string | null>(null);
-
     // Success Sequence State
-    const [successStage, setSuccessStage] = useState<'NONE' | 'TITLE' | 'LOADING' | 'EYES' | 'ZOOM'>('NONE');
+    const [successStage, setSuccessStage] = useState<'NONE' | 'TITLE' | 'LOADING' | 'ZOOM'>('NONE');
     const [successTitle, setSuccessTitle] = useState('');
 
     // --- REFS ---
@@ -56,14 +52,6 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
         "crack dev", "crack developer", "cracked dev", "cracked developer",
         "what password?", "what password", "what?", "what", "wut?", "wut",
         "i don't know", "i dont know", "i dunno", "idk"
-    ];
-
-    const CHAPLAIN_IMAGES = [
-        '/chaplain-1.png',
-        '/chaplain-2.png',
-        '/chaplain-3.png',
-        '/chaplain-4.png',
-        '/chaplain-5.png'
     ];
 
     const INQUISITION_DIALOGS = [
@@ -346,21 +334,18 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
         const isValid = isValidPassword(currentInput);
 
         if (isValid) {
-            // START SUCCESS SEQUENCE
+            // START SUCCESS SEQUENCE (17s)
             setSuccessTitle(getSuccessTitle(mistakeCount));
             setSuccessStage('TITLE');
 
-            // 10s Sequence Logic
+            // 17s Sequence Logic
             setTimeout(() => {
                 setSuccessStage('LOADING');
                 setTimeout(() => {
-                    setSuccessStage('EYES');
+                    setSuccessStage('ZOOM');
                     setTimeout(() => {
-                        setSuccessStage('ZOOM');
-                        setTimeout(() => {
-                            onSuccess(true); // Trigger Main Page + Tooltip
-                        }, 500);
-                    }, 3000);
+                        onSuccess(true); // Trigger Main Page + Tooltip
+                    }, 500);
                 }, 4000);
             }, 3000);
 
@@ -372,11 +357,6 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
         const newMistakeCount = mistakeCount + 1;
         setMistakeCount(newMistakeCount);
         setHeresyLevel(prev => Math.min(6, prev + 1));
-
-        const imageIndex = Math.min(newMistakeCount - 1, 4);
-        setChaplainImage(CHAPLAIN_IMAGES[imageIndex]);
-        setShowChaplain(true);
-        setTimeout(() => setShowChaplain(false), 3000);
 
         const responseText = `I sense heresy... ${getHeresyMessage(newMistakeCount)}`;
 
@@ -413,7 +393,10 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
     if (successStage !== 'NONE') {
         return (
             <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center font-mono text-white overflow-hidden">
-                <Starfield />
+                {/* Blur Background during sequence */}
+                <div className="absolute inset-0 filter blur-md opacity-50">
+                    <Starfield />
+                </div>
 
                 {successStage === 'TITLE' && (
                     <h1 className="text-6xl md:text-8xl font-bold text-center animate-pulse z-10 text-red-600 font-retro tracking-widest">
@@ -429,13 +412,6 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
                             <div className="w-4 h-4 bg-red-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                             <div className="w-4 h-4 bg-red-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
                         </div>
-                    </div>
-                )}
-
-                {successStage === 'EYES' && (
-                    <div className="absolute inset-0 z-20 flex items-center justify-center red-eyes-effect">
-                        <div className="w-full h-full bg-red-900/20 mix-blend-overlay"></div>
-                        <img src="/leandros-angry.png" className="w-96 h-96 object-contain opacity-50" />
                     </div>
                 )}
 
@@ -498,14 +474,11 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
 
                         {/* Leandros Avatar (Absolute in corner) */}
                         {step === 'CHAT' && (
-                            <div className="absolute top-2 right-2 z-10 opacity-80 pointer-events-none">
-                                <div className="scale-75 origin-top-right">
-                                    <LeandrosAvatar isSpeaking={isSpeaking} heresyLevel={heresyLevel} />
-                                </div>
+                            <div className="absolute top-2 right-2 z-10 pointer-events-none">
+                                <LeandrosAvatar isSpeaking={isSpeaking} heresyLevel={heresyLevel} />
                             </div>
                         )}
 
-                        {/* ... (Existing Step Logic: API_KEY, AUDIO_PERM, DUAL_INIT) ... */}
                         {step === 'API_KEY' && (
                             <div className="flex-1 flex flex-col items-center justify-center gap-6 animate-fade-in">
                                 <div className="text-4xl mb-4"><Cpu size={64} className="animate-pulse" /></div>
@@ -592,13 +565,6 @@ const LeandrosWelcome: React.FC<LeandrosWelcomeProps> = ({ onSuccess }) => {
                     </div>
                 )}
             </div>
-
-            {/* CHAPLAIN FIGURE (LEFT SIDE) */}
-            {showChaplain && (
-                <div className="fixed bottom-0 left-0 w-1/3 h-2/3 pointer-events-none z-[150] chaplain-peek-left">
-                    <img src="/chaplain-figure.png" alt="Judging Chaplain" className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(255,0,0,0.5)]" />
-                </div>
-            )}
         </div>
     );
 };

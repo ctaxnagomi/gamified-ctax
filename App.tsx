@@ -20,6 +20,7 @@ declare global {
 import LeandrosWelcome from './components/LeandrosWelcome';
 import MiniPlayer from './components/MiniPlayer';
 
+
 const MainSystem: React.FC = () => {
     const [activeView, setActiveView] = useState<string>(View.DASHBOARD);
     const [pageRotation, setPageRotation] = useState(0);
@@ -642,6 +643,8 @@ const MainSystem: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+
             {/* Mini Player Overlay */}
             <MiniPlayer />
         </div>

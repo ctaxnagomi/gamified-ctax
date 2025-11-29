@@ -284,6 +284,201 @@ body {
     opacity: 0;
   }
 
+}
+
+.key-cap-white:active {
+  box-shadow:
+    0 0 0 1px #aaa,
+    inset 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Lofi Room Background */
+.lofi-room {
+  background-image: url('/lofi-room.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.lofi-room::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(45, 27, 46, 0.75);
+  pointer-events: none;
+}
+
+/* Chaplain Peeking Animation */
+@keyframes peek-in {
+  0% {
+    transform: translateY(100%) rotate(5deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes peek-in-left {
+  0% {
+    transform: translateX(-100%) rotate(-5deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.chaplain-peek {
+  animation: peek-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.chaplain-peek-left {
+  animation: peek-in-left 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* KD Invasion Success Animation */
+@keyframes invasion-glitch {
+  0% {
+    clip-path: inset(50% 0 30% 0);
+    transform: translate(-5px, 0);
+  }
+
+  20% {
+    clip-path: inset(20% 0 60% 0);
+    transform: translate(5px, 0);
+  }
+
+  40% {
+    clip-path: inset(40% 0 40% 0);
+    transform: translate(-5px, 0);
+  }
+
+  60% {
+    clip-path: inset(80% 0 5% 0);
+    transform: translate(5px, 0);
+  }
+
+  80% {
+    clip-path: inset(10% 0 70% 0);
+    transform: translate(-5px, 0);
+  }
+
+  100% {
+    clip-path: inset(30% 0 50% 0);
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes invasion-flash {
+
+  0%,
+  100% {
+    background-color: transparent;
+  }
+
+  10%,
+  90% {
+    background-color: rgba(255, 0, 0, 0.2);
+  }
+
+  50% {
+    background-color: rgba(255, 0, 0, 0.5);
+  }
+}
+
+.kd-invasion-text {
+  font-family: 'Press Start 2P', cursive;
+  text-shadow: 4px 4px 0px #ff0000;
+  animation: invasion-glitch 1s infinite linear alternate-reverse;
+}
+
+.kd-invasion-bg {
+  animation: invasion-flash 0.2s infinite;
+}
+
+/* --- LEANDROS 3.0 ANIMATIONS --- */
+
+/* Starfield Animation */
+@keyframes animStar {
+  from {
+    transform: translateY(0px);
+  }
+
+  to {
+    transform: translateY(-2000px);
+  }
+}
+
+/* Success Sequence: Zoom In/Out */
+@keyframes zoom-out-in {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Red Eyes Fade */
+@keyframes red-eyes-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+.animate-star-slow {
+  animation: animStar 150s linear infinite;
+}
+
+.animate-star-medium {
+  animation: animStar 100s linear infinite;
+}
+
+.animate-star-fast {
+  animation: animStar 50s linear infinite;
+}
+
+.success-sequence-zoom {
+  animation: zoom-out-in 2s ease-in-out forwards;
+}
+
+.red-eyes-effect {
+  animation: red-eyes-pulse 3s ease-in-out infinite;
+}
+
+/* Mouth Animation */
+@keyframes mouth-move {
+
+  0%,
+  100% {
+    opacity: 0;
+  }
+
   50% {
     opacity: 1;
   }
@@ -293,57 +488,59 @@ body {
   animation: mouth-move 0.2s infinite steps(1);
 }
 
-/* --- 3D Social Icons --- */
+@keyframes float-skull {}
+
+/* --- 3D Social Icons (New Style) --- */
 .social-3d-container {
   position: absolute;
-  top: 65%;
-  /* Below the title */
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   display: flex;
   margin: 0;
   padding: 0;
   z-index: 50;
-  /* Ensure clickable */
 }
 
 .social-3d-item {
   list-style: none;
-  margin: 0 10px;
+  margin: 0 5px;
 }
 
 .social-3d-link {
   text-decoration: none;
   display: block;
-  width: 150px;
-  /* Smaller size */
-  height: 60px;
-  /* Smaller size */
+  width: 210px;
+  height: 80px;
   background: #fff;
   text-align: left;
-  padding-left: 15px;
+  padding-left: 20px;
   transform: rotate(-30deg) skew(25deg) translate(0, 0);
   transition: .5s;
   box-shadow: -20px 20px 10px rgba(0, 0, 0, .5);
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
 }
 
 .social-3d-link .icon {
-  font-size: 24px;
+  font-size: 40px;
   color: #262626;
   transition: .5s;
+  padding-right: 14px;
 }
 
 .social-3d-link span {
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  top: 30px;
   color: #262626;
-  letter-spacing: 2px;
+  letter-spacing: 4px;
   transition: .5s;
   font-family: 'Roboto Condensed', sans-serif;
-  font-weight: bold;
-  font-size: 14px;
+  display: inline-block;
+  /* Ensure visibility */
 }
 
 .social-3d-link:before {
@@ -375,7 +572,10 @@ body {
   box-shadow: -50px 50px 50px rgba(0, 0, 0, .5);
 }
 
-.social-3d-item:hover .icon,
+.social-3d-item:hover .icon {
+  color: #fff;
+}
+
 .social-3d-item:hover span {
   color: #fff;
 }
