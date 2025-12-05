@@ -722,10 +722,9 @@ const MainSystem: React.FC<MainSystemProps> = ({ onLaunchIDE }) => {
                     </div>
                 </div>
             </div>
+            {/* Mini Player Overlay */}
+            <MiniPlayer />
         </div>
-            {/* Mini Player Overlay */ }
-    <MiniPlayer />
-        </div >
     );
 };
 
