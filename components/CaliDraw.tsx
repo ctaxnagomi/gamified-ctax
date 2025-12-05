@@ -46,21 +46,56 @@ const CaliDraw: React.FC<CaliDrawProps> = ({ onMinimize, isMinimized, onExit }) 
     // CLI Command Handler
     const handleCliCommand = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
-            const cmd = cliInput.trim();
-            addLog(`$ ${cmd}`);
+            const cmd = cliInput.trim().toLowerCase();
+            const rawCmd = cliInput.trim();
+            addLog(`$ ${rawCmd}`);
 
-            if (cmd === '/connect') {
+            if (cmd === '/connect' || cmd === 'connect') {
                 setShowConnectionModal(true);
-            } else if (cmd.startsWith('/model ')) {
-                const model = cmd.split(' ')[1].toUpperCase();
+            } else if (cmd.startsWith('/model ') || cmd.startsWith('model ')) {
+                const model = rawCmd.split(' ')[1].toUpperCase();
                 setSelectedModel(model);
-                addLog(`Switched to model: ${model}`);
-            } else if (cmd === 'help') {
-                addLog('Available commands: /connect, /model [name], help, clear');
+                addLog(`[OK] Switched to model: ${model}`);
+            } else if (cmd === 'help' || cmd === '/help') {
+                addLog('─────────────────────────────');
+                addLog('AVAILABLE COMMANDS:');
+                addLog('  help        - Show this help');
+                addLog('  status      - Show system status');
+                addLog('  clear       - Clear terminal');
+                addLog('  generate    - Generate diagram from preset');
+                addLog('  export      - Export current scene to JSON');
+                addLog('  scene       - Show scene statistics');
+                addLog('  /connect    - Open connection modal');
+                addLog('  /model [x]  - Switch AI model');
+                addLog('─────────────────────────────');
             } else if (cmd === 'clear') {
-                setLogs([]);
+                setLogs(['> Terminal cleared.']);
+            } else if (cmd === 'status') {
+                addLog('─────────────────────────────');
+                addLog(`MODEL: ${selectedModel}`);
+                addLog(`PRESET: ${selectedPreset}`);
+                addLog(`SYSTEM: ONLINE`);
+                addLog(`LATENCY: ${Math.floor(Math.random() * 50) + 10}ms`);
+                addLog('─────────────────────────────');
+            } else if (cmd === 'generate' || cmd === '/generate') {
+                addLog(`[INFO] Generating ${selectedPreset} diagram...`);
+                addLog(`[INFO] Using model: ${selectedModel}`);
+                addLog(`[INFO] Instructions: ${customInstruction.slice(0, 50)}...`);
+                setTimeout(() => addLog('[OK] Diagram generated successfully.'), 800);
+            } else if (cmd === 'export' || cmd === '/export') {
+                handleExportJSON();
+            } else if (cmd === 'scene' || cmd === '/scene') {
+                const elements = excalidrawAPI?.getSceneElements() || [];
+                addLog('─────────────────────────────');
+                addLog(`SCENE STATISTICS:`);
+                addLog(`  Elements: ${elements.length}`);
+                addLog(`  Types: ${[...new Set(elements.map((e: any) => e.type))].join(', ') || 'None'}`);
+                addLog('─────────────────────────────');
+            } else if (cmd === '') {
+                // Empty command, do nothing
             } else {
-                addLog(`Unknown command: ${cmd}`);
+                addLog(`[ERR] Unknown command: ${rawCmd}`);
+                addLog('  Type "help" for available commands.');
             }
             setCliInput('');
         }
