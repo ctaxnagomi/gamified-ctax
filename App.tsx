@@ -7,6 +7,7 @@ import QuestsView from './views/QuestsView';
 import LeaderboardView from './views/LeaderboardView';
 import ProfileView from './views/ProfileView';
 import MapView from './views/MapView';
+import EmulatorView from './views/EmulatorView';
 import { NavItem, View } from './types';
 import { LayoutDashboard, Briefcase, Scroll, Trophy, User, Sword, Star, Map, Terminal, PenTool, Gamepad2, Users, Calendar, Award, Globe, MessageCircle, Play, Pause, SkipForward, Music, Volume2, VolumeX, Minus, ChevronUp, Move } from 'lucide-react';
 
@@ -167,6 +168,7 @@ const MainSystem: React.FC<MainSystemProps> = ({ onLaunchIDE }) => {
             { id: View.LEADERBOARD, color: '#a855f7' },
             { id: View.PROFILE, color: '#f43f5e' },
             { id: 'MAP', color: '#06b6d4' },
+            { id: View.EMULATOR, color: '#ffffff' },
         ];
 
         return baseItems.map(item => {
@@ -178,7 +180,8 @@ const MainSystem: React.FC<MainSystemProps> = ({ onLaunchIDE }) => {
                     [View.CALIDRAW]: 'CaliDraw',
                     [View.LEADERBOARD]: 'Mentors',
                     [View.PROFILE]: 'Blog',
-                    'MAP': 'Gallery'
+                    'MAP': 'Gallery',
+                    [View.EMULATOR]: 'Games'
                 };
                 const icons: Record<string, React.ReactNode> = {
                     [View.DASHBOARD]: <MessageCircle size={20} />,
@@ -186,7 +189,8 @@ const MainSystem: React.FC<MainSystemProps> = ({ onLaunchIDE }) => {
                     [View.CALIDRAW]: <PenTool size={20} />,
                     [View.LEADERBOARD]: <Star size={20} />,
                     [View.PROFILE]: <PenTool size={20} />,
-                    'MAP': <Globe size={20} />
+                    'MAP': <Globe size={20} />,
+                    [View.EMULATOR]: <Gamepad2 size={20} />
                 };
                 return { ...item, label: labels[item.id], icon: icons[item.id] };
             } else if (themeMode === 'CONSOLE') {
@@ -197,7 +201,8 @@ const MainSystem: React.FC<MainSystemProps> = ({ onLaunchIDE }) => {
                     [View.CALIDRAW]: 'CaliDraw',
                     [View.LEADERBOARD]: 'Judges',
                     [View.PROFILE]: 'Prizes',
-                    'MAP': 'Schedule'
+                    'MAP': 'Schedule',
+                    [View.EMULATOR]: 'Sim'
                 };
                 const icons: Record<string, React.ReactNode> = {
                     [View.DASHBOARD]: <Terminal size={18} />,
@@ -205,7 +210,9 @@ const MainSystem: React.FC<MainSystemProps> = ({ onLaunchIDE }) => {
                     [View.CALIDRAW]: <PenTool size={18} />,
                     [View.LEADERBOARD]: <User size={18} />,
                     [View.PROFILE]: <Award size={18} />,
-                    'MAP': <Calendar size={18} />
+                    [View.PROFILE]: <Award size={18} />,
+                    'MAP': <Calendar size={18} />,
+                    [View.EMULATOR]: <Gamepad2 size={18} />
                 };
                 return { ...item, label: labels[item.id], icon: icons[item.id], color: '#000000' };
             } else if (themeMode === 'RETRO') {
@@ -216,7 +223,8 @@ const MainSystem: React.FC<MainSystemProps> = ({ onLaunchIDE }) => {
                     [View.CALIDRAW]: 'CaliDraw',
                     [View.LEADERBOARD]: 'High Scores',
                     [View.PROFILE]: 'Save Data',
-                    'MAP': 'World Map'
+                    'MAP': 'World Map',
+                    [View.EMULATOR]: 'Arcade'
                 };
                 const icons: Record<string, React.ReactNode> = {
                     [View.DASHBOARD]: <Gamepad2 size={18} />,
@@ -224,7 +232,9 @@ const MainSystem: React.FC<MainSystemProps> = ({ onLaunchIDE }) => {
                     [View.CALIDRAW]: <PenTool size={18} />,
                     [View.LEADERBOARD]: <Trophy size={18} />,
                     [View.PROFILE]: <User size={18} />,
-                    'MAP': <Map size={18} />
+                    [View.PROFILE]: <User size={18} />,
+                    'MAP': <Map size={18} />,
+                    [View.EMULATOR]: <Gamepad2 size={18} />
                 };
                 // Neon colors for Retro
                 const colors: Record<string, string> = {
@@ -233,7 +243,8 @@ const MainSystem: React.FC<MainSystemProps> = ({ onLaunchIDE }) => {
                     [View.CALIDRAW]: '#ffff00', // Yellow
                     [View.LEADERBOARD]: '#00ff00', // Green
                     [View.PROFILE]: '#ff0000', // Red
-                    'MAP': '#0000ff' // Blue
+                    'MAP': '#0000ff', // Blue
+                    [View.EMULATOR]: '#ffffff' // White
                 };
                 return { ...item, label: labels[item.id], icon: icons[item.id], color: colors[item.id] };
             } else {
@@ -244,7 +255,8 @@ const MainSystem: React.FC<MainSystemProps> = ({ onLaunchIDE }) => {
                     [View.CALIDRAW]: 'CaliDraw',
                     [View.LEADERBOARD]: 'Ranks',
                     [View.PROFILE]: 'Profile',
-                    'MAP': 'Map'
+                    'MAP': 'Map',
+                    [View.EMULATOR]: 'Retro'
                 };
                 const icons: Record<string, React.ReactNode> = {
                     [View.DASHBOARD]: <LayoutDashboard size={18} />,
@@ -252,7 +264,8 @@ const MainSystem: React.FC<MainSystemProps> = ({ onLaunchIDE }) => {
                     [View.CALIDRAW]: <PenTool size={18} />,
                     [View.LEADERBOARD]: <Trophy size={18} />,
                     [View.PROFILE]: <User size={18} />,
-                    'MAP': <Map size={18} />
+                    'MAP': <Map size={18} />,
+                    [View.EMULATOR]: <Gamepad2 size={18} />
                 };
                 return { ...item, label: labels[item.id], icon: icons[item.id] };
             }
@@ -355,6 +368,8 @@ const MainSystem: React.FC<MainSystemProps> = ({ onLaunchIDE }) => {
                 return <ProfileView theme={themeMode} />;
             case 'MAP':
                 return <MapView theme={themeMode} />;
+            case View.EMULATOR:
+                return <EmulatorView theme={themeMode} />;
             default:
                 return <DashboardView theme={themeMode} />;
         }
@@ -626,89 +641,90 @@ const MainSystem: React.FC<MainSystemProps> = ({ onLaunchIDE }) => {
                         </main>
                     </div>
                 </div>
+            </div>
 
-                {/* --- FOOTER (Song Description) --- */}
-                <div className={`h-16 px-4 md:px-6 flex items-center gap-2 md:gap-4 z-50 ${themeStyles.footer}`}>
-                    {/* Minimized Sidebar "Tab" */}
-                    {isSidebarMinimized && (
-                        <button
-                            onClick={() => setIsSidebarMinimized(false)}
-                            className={`
+            {/* --- FOOTER (Song Description) --- */}
+            <div className={`h-16 px-4 md:px-6 flex items-center gap-2 md:gap-4 z-50 ${themeStyles.footer}`}>
+                {/* Minimized Sidebar "Tab" */}
+                {isSidebarMinimized && (
+                    <button
+                        onClick={() => setIsSidebarMinimized(false)}
+                        className={`
                             mr-2 md:mr-4 px-3 py-1.5 rounded border border-dashed flex items-center gap-2 text-[10px] md:text-xs font-mono uppercase transition-colors
                             ${themeMode === 'CONSOLE' ? 'border-black text-black hover:bg-black/10' :
-                                    themeMode === 'RETRO' ? 'border-[#00ff00] text-[#00ff00] hover:bg-[#00ff00]/10' :
-                                        'border-white/30 text-white/70 hover:bg-white/10'}
+                                themeMode === 'RETRO' ? 'border-[#00ff00] text-[#00ff00] hover:bg-[#00ff00]/10' :
+                                    'border-white/30 text-white/70 hover:bg-white/10'}
                         `}
-                        >
-                            <ChevronUp size={12} />
-                            <span className="hidden sm:inline">System</span>
-                        </button>
-                    )}
+                    >
+                        <ChevronUp size={12} />
+                        <span className="hidden sm:inline">System</span>
+                    </button>
+                )}
 
-                    {/* Hidden Iframe for SoundCloud */}
-                    <iframe
-                        ref={iframeRef}
-                        id="sc-widget"
-                        src={tracks[themeMode].src}
-                        width="100%"
-                        height="166"
-                        scrolling="no"
-                        frameBorder="no"
-                        allow="autoplay"
-                        className="hidden"
-                        title="soundcloud-player"
-                    ></iframe>
+                {/* Hidden Iframe for SoundCloud */}
+                <iframe
+                    ref={iframeRef}
+                    id="sc-widget"
+                    src={tracks[themeMode].src}
+                    width="100%"
+                    height="166"
+                    scrolling="no"
+                    frameBorder="no"
+                    allow="autoplay"
+                    className="hidden"
+                    title="soundcloud-player"
+                ></iframe>
 
-                    {/* Visualizer Icon (Static/Animated) */}
-                    <div className={`w-8 h-8 md:w-10 md:h-10 rounded shrink-0 flex items-center justify-center 
+                {/* Visualizer Icon (Static/Animated) */}
+                <div className={`w-8 h-8 md:w-10 md:h-10 rounded shrink-0 flex items-center justify-center 
                         ${themeMode === 'CONSOLE' ? 'bg-black text-white' :
-                            themeMode === 'RETRO' ? 'bg-[#ff00ff] text-white animate-pulse' :
-                                'bg-kraken-primary text-white'}`}>
-                        {isPlaying ? (
-                            <div className="flex gap-0.5 md:gap-1 items-end h-3 md:h-4">
-                                <div className="w-0.5 md:w-1 bg-white animate-bounce-visualizer" style={{ animationDuration: '0.4s' }}></div>
-                                <div className="w-0.5 md:w-1 bg-white animate-bounce-visualizer" style={{ animationDuration: '0.6s' }}></div>
-                                <div className="w-0.5 md:w-1 bg-white animate-bounce-visualizer" style={{ animationDuration: '0.5s' }}></div>
-                            </div>
-                        ) : (
-                            <Play size={14} className="ml-0.5 md:ml-1" />
-                        )}
+                        themeMode === 'RETRO' ? 'bg-[#ff00ff] text-white animate-pulse' :
+                            'bg-kraken-primary text-white'}`}>
+                    {isPlaying ? (
+                        <div className="flex gap-0.5 md:gap-1 items-end h-3 md:h-4">
+                            <div className="w-0.5 md:w-1 bg-white animate-bounce-visualizer" style={{ animationDuration: '0.4s' }}></div>
+                            <div className="w-0.5 md:w-1 bg-white animate-bounce-visualizer" style={{ animationDuration: '0.6s' }}></div>
+                            <div className="w-0.5 md:w-1 bg-white animate-bounce-visualizer" style={{ animationDuration: '0.5s' }}></div>
+                        </div>
+                    ) : (
+                        <Play size={14} className="ml-0.5 md:ml-1" />
+                    )}
+                </div>
+
+                <div className="flex flex-col overflow-hidden flex-1 min-w-0">
+                    <span className={`text-xs md:text-sm font-bold truncate ${themeMode === 'CONSOLE' ? 'text-black' : themeMode === 'RETRO' ? 'text-[#00ff00]' : 'text-white'}`}>
+                        {tracks[themeMode].title}
+                    </span>
+                    <span className={`text-[10px] md:text-xs truncate ${themeMode === 'CONSOLE' ? 'text-gray-500' : themeMode === 'RETRO' ? 'text-[#ff00ff]' : 'text-gray-400'}`}>
+                        {tracks[themeMode].artist}
+                    </span>
+                </div>
+
+                <div className="ml-auto flex items-center gap-2 md:gap-4 shrink-0">
+                    {/* Volume Slider */}
+                    <div className="hidden sm:flex items-center gap-2">
+                        <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            value={isMuted ? 0 : volume}
+                            onChange={handleVolumeChange}
+                            className={`w-16 md:w-24 h-1 rounded-lg appearance-none cursor-pointer bg-gray-600 accent-current ${themeMode === 'CONSOLE' ? 'text-black' : themeMode === 'RETRO' ? 'text-[#00ffff]' : 'text-white'}`}
+                            aria-label="Volume Control"
+                        />
                     </div>
 
-                    <div className="flex flex-col overflow-hidden flex-1 min-w-0">
-                        <span className={`text-xs md:text-sm font-bold truncate ${themeMode === 'CONSOLE' ? 'text-black' : themeMode === 'RETRO' ? 'text-[#00ff00]' : 'text-white'}`}>
-                            {tracks[themeMode].title}
-                        </span>
-                        <span className={`text-[10px] md:text-xs truncate ${themeMode === 'CONSOLE' ? 'text-gray-500' : themeMode === 'RETRO' ? 'text-[#ff00ff]' : 'text-gray-400'}`}>
-                            {tracks[themeMode].artist}
-                        </span>
-                    </div>
-
-                    <div className="ml-auto flex items-center gap-2 md:gap-4 shrink-0">
-                        {/* Volume Slider */}
-                        <div className="hidden sm:flex items-center gap-2">
-                            <input
-                                type="range"
-                                min="0"
-                                max="100"
-                                value={isMuted ? 0 : volume}
-                                onChange={handleVolumeChange}
-                                className={`w-16 md:w-24 h-1 rounded-lg appearance-none cursor-pointer bg-gray-600 accent-current ${themeMode === 'CONSOLE' ? 'text-black' : themeMode === 'RETRO' ? 'text-[#00ffff]' : 'text-white'}`}
-                                aria-label="Volume Control"
-                            />
-                        </div>
-
-                        <button onClick={toggleMute} className={`p-2 rounded-lg hover:bg-gray-500/10 ${themeMode === 'CONSOLE' ? 'text-black' : themeMode === 'RETRO' ? 'text-[#00ff00]' : 'text-gray-400'}`} aria-label={isMuted ? "Unmute" : "Mute"}>
-                            {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                        </button>
-                        <div className={`hidden md:block text-xs opacity-50 ${themeMode === 'CONSOLE' ? 'text-black' : themeMode === 'RETRO' ? 'text-[#ff00ff]' : 'text-white'}`}>
-                            {isPlaying ? 'PLAYING' : 'PAUSED'}
-                        </div>
+                    <button onClick={toggleMute} className={`p-2 rounded-lg hover:bg-gray-500/10 ${themeMode === 'CONSOLE' ? 'text-black' : themeMode === 'RETRO' ? 'text-[#00ff00]' : 'text-gray-400'}`} aria-label={isMuted ? "Unmute" : "Mute"}>
+                        {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                    </button>
+                    <div className={`hidden md:block text-xs opacity-50 ${themeMode === 'CONSOLE' ? 'text-black' : themeMode === 'RETRO' ? 'text-[#ff00ff]' : 'text-white'}`}>
+                        {isPlaying ? 'PLAYING' : 'PAUSED'}
                     </div>
                 </div>
             </div>
-            {/* Mini Player Overlay */}
-            <MiniPlayer />
+        </div>
+            {/* Mini Player Overlay */ }
+    <MiniPlayer />
         </div >
     );
 };
