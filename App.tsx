@@ -19,9 +19,16 @@ declare global {
 
 import LeandrosWelcome from './components/LeandrosWelcome';
 import MiniPlayer from './components/MiniPlayer';
+import CaliDraw from './components/CaliDraw';
 
+// --- TYPES ---
+type AppState = 'STARTER' | 'OS' | 'IDE';
 
-const MainSystem: React.FC = () => {
+interface MainSystemProps {
+    onLaunchIDE: () => void;
+}
+
+const MainSystem: React.FC<MainSystemProps> = ({ onLaunchIDE }) => {
     const [activeView, setActiveView] = useState<string>(View.DASHBOARD);
     const [pageRotation, setPageRotation] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
@@ -156,7 +163,7 @@ const MainSystem: React.FC = () => {
         const baseItems = [
             { id: View.DASHBOARD, color: '#3b82f6' },
             { id: View.JOBS, color: '#22c55e' },
-            { id: View.QUESTS, color: '#eab308' },
+            { id: View.CALIDRAW, color: '#eab308' },
             { id: View.LEADERBOARD, color: '#a855f7' },
             { id: View.PROFILE, color: '#f43f5e' },
             { id: 'MAP', color: '#06b6d4' },
@@ -168,7 +175,7 @@ const MainSystem: React.FC = () => {
                 const labels: Record<string, string> = {
                     [View.DASHBOARD]: 'Feed',
                     [View.JOBS]: 'Discuss',
-                    [View.QUESTS]: 'Events',
+                    [View.CALIDRAW]: 'CaliDraw',
                     [View.LEADERBOARD]: 'Mentors',
                     [View.PROFILE]: 'Blog',
                     'MAP': 'Gallery'
@@ -176,7 +183,7 @@ const MainSystem: React.FC = () => {
                 const icons: Record<string, React.ReactNode> = {
                     [View.DASHBOARD]: <MessageCircle size={20} />,
                     [View.JOBS]: <Users size={20} />,
-                    [View.QUESTS]: <Calendar size={20} />,
+                    [View.CALIDRAW]: <PenTool size={20} />,
                     [View.LEADERBOARD]: <Star size={20} />,
                     [View.PROFILE]: <PenTool size={20} />,
                     'MAP': <Globe size={20} />
@@ -187,7 +194,7 @@ const MainSystem: React.FC = () => {
                 const labels: Record<string, string> = {
                     [View.DASHBOARD]: 'Overview',
                     [View.JOBS]: 'Teams',
-                    [View.QUESTS]: 'Submit',
+                    [View.CALIDRAW]: 'CaliDraw',
                     [View.LEADERBOARD]: 'Judges',
                     [View.PROFILE]: 'Prizes',
                     'MAP': 'Schedule'
@@ -195,7 +202,7 @@ const MainSystem: React.FC = () => {
                 const icons: Record<string, React.ReactNode> = {
                     [View.DASHBOARD]: <Terminal size={18} />,
                     [View.JOBS]: <Users size={18} />,
-                    [View.QUESTS]: <Sword size={18} />,
+                    [View.CALIDRAW]: <PenTool size={18} />,
                     [View.LEADERBOARD]: <User size={18} />,
                     [View.PROFILE]: <Award size={18} />,
                     'MAP': <Calendar size={18} />
@@ -206,7 +213,7 @@ const MainSystem: React.FC = () => {
                 const labels: Record<string, string> = {
                     [View.DASHBOARD]: 'Library',
                     [View.JOBS]: 'Multiplayer',
-                    [View.QUESTS]: 'Challenges',
+                    [View.CALIDRAW]: 'CaliDraw',
                     [View.LEADERBOARD]: 'High Scores',
                     [View.PROFILE]: 'Save Data',
                     'MAP': 'World Map'
@@ -214,7 +221,7 @@ const MainSystem: React.FC = () => {
                 const icons: Record<string, React.ReactNode> = {
                     [View.DASHBOARD]: <Gamepad2 size={18} />,
                     [View.JOBS]: <Users size={18} />,
-                    [View.QUESTS]: <Sword size={18} />,
+                    [View.CALIDRAW]: <PenTool size={18} />,
                     [View.LEADERBOARD]: <Trophy size={18} />,
                     [View.PROFILE]: <User size={18} />,
                     'MAP': <Map size={18} />
@@ -223,7 +230,7 @@ const MainSystem: React.FC = () => {
                 const colors: Record<string, string> = {
                     [View.DASHBOARD]: '#ff00ff', // Magenta
                     [View.JOBS]: '#00ffff', // Cyan
-                    [View.QUESTS]: '#ffff00', // Yellow
+                    [View.CALIDRAW]: '#ffff00', // Yellow
                     [View.LEADERBOARD]: '#00ff00', // Green
                     [View.PROFILE]: '#ff0000', // Red
                     'MAP': '#0000ff' // Blue
@@ -234,7 +241,7 @@ const MainSystem: React.FC = () => {
                 const labels: Record<string, string> = {
                     [View.DASHBOARD]: 'Home',
                     [View.JOBS]: 'Jobs',
-                    [View.QUESTS]: 'Quests',
+                    [View.CALIDRAW]: 'CaliDraw',
                     [View.LEADERBOARD]: 'Ranks',
                     [View.PROFILE]: 'Profile',
                     'MAP': 'Map'
@@ -242,7 +249,7 @@ const MainSystem: React.FC = () => {
                 const icons: Record<string, React.ReactNode> = {
                     [View.DASHBOARD]: <LayoutDashboard size={18} />,
                     [View.JOBS]: <Briefcase size={18} />,
-                    [View.QUESTS]: <Scroll size={18} />,
+                    [View.CALIDRAW]: <PenTool size={18} />,
                     [View.LEADERBOARD]: <Trophy size={18} />,
                     [View.PROFILE]: <User size={18} />,
                     'MAP': <Map size={18} />
@@ -257,20 +264,10 @@ const MainSystem: React.FC = () => {
 
     const handleRotationChange = (rotation: number, dragging: boolean) => {
         if (dragging) {
-            // Limit the rotation visual to avoid flipping over completely (clamping)
-            // Map full rotation loop to a -45 to 45 degree tilt for a controlled swing
-            // OR allow full spin if that's the "Revolving Door" intent.
-            // Let's do a dampened 1:0.5 ratio but clamp it visually to prevent reading backwards text
-            // Actually, for "Revolving door" effect, full spin is 3D. 
-            // But for usability, let's keep it swinging.
-
             let tilt = rotation % 360;
             if (tilt > 180) tilt -= 360;
-
-            // Dampen it
             setPageRotation(tilt * 0.3);
         } else {
-            // Snap back to 0 (flat) when released
             setPageRotation(0);
         }
         setIsDragging(dragging);
@@ -334,8 +331,24 @@ const MainSystem: React.FC = () => {
                 return <DashboardView theme={themeMode} />;
             case View.JOBS:
                 return <JobsView theme={themeMode} />;
-            case View.QUESTS:
-                return <QuestsView theme={themeMode} />;
+            case View.CALIDRAW:
+                // Instead of rendering CaliDraw here, we show a launcher
+                return (
+                    <div className="flex flex-col items-center justify-center h-full text-center">
+                        <PenTool size={64} className="text-yellow-500 mb-4 animate-bounce" />
+                        <h2 className="text-2xl font-bold mb-2">CaliDraw IDE</h2>
+                        <p className="text-gray-400 mb-6 max-w-md">
+                            Launch the dedicated Integrated Development Environment for diagramming and AI generation.
+                        </p>
+                        <button
+                            onClick={onLaunchIDE}
+                            className="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-lg shadow-lg hover:scale-105 transition-transform flex items-center gap-2"
+                        >
+                            <Terminal size={20} />
+                            Launch IDE Zone
+                        </button>
+                    </div>
+                );
             case View.LEADERBOARD:
                 return <LeaderboardView theme={themeMode} />;
             case View.PROFILE:
@@ -345,6 +358,47 @@ const MainSystem: React.FC = () => {
             default:
                 return <DashboardView theme={themeMode} />;
         }
+    };
+
+    // --- SWIPE LOGIC ---
+    const touchStartRef = useRef<{ x: number, y: number } | null>(null);
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
+        const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+        const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+        touchStartRef.current = { x: clientX, y: clientY };
+    };
+
+    const onTouchEnd = (e: React.TouchEvent | React.MouseEvent) => {
+        if (!touchStartRef.current) return;
+
+        const clientX = 'changedTouches' in e ? e.changedTouches[0].clientX : (e as React.MouseEvent).clientX;
+        const clientY = 'changedTouches' in e ? e.changedTouches[0].clientY : (e as React.MouseEvent).clientY;
+
+        const distanceX = touchStartRef.current.x - clientX;
+        const distanceY = touchStartRef.current.y - clientY;
+        const isLeftSwipe = distanceX > minSwipeDistance;
+        const isRightSwipe = distanceX < -minSwipeDistance;
+
+        // Ignore vertical swipes (scrolling)
+        if (Math.abs(distanceX) > Math.abs(distanceY)) {
+            if (isLeftSwipe || isRightSwipe) {
+                const currentIndex = navItems.findIndex(item => item.id === activeView);
+                if (currentIndex !== -1) {
+                    let nextIndex;
+                    if (isLeftSwipe) {
+                        // Swipe Left -> Next Item
+                        nextIndex = (currentIndex + 1) % navItems.length;
+                    } else {
+                        // Swipe Right -> Previous Item
+                        nextIndex = (currentIndex - 1 + navItems.length) % navItems.length;
+                    }
+                    setActiveView(navItems[nextIndex].id);
+                }
+            }
+        }
+        touchStartRef.current = null;
     };
 
     // Calculate dynamic 3D styles
@@ -459,7 +513,14 @@ const MainSystem: React.FC = () => {
                     <CircularNav
                         items={navItems}
                         activeId={activeView}
-                        onSelect={setActiveView}
+                        onSelect={(id) => {
+                            if (id === View.CALIDRAW) {
+                                // Optional: Auto-launch or just show launcher
+                                setActiveView(id);
+                            } else {
+                                setActiveView(id);
+                            }
+                        }}
                         onRotationChange={handleRotationChange}
                         onCenterClick={handleCenterClick}
                         themeMode={themeMode}
@@ -479,13 +540,13 @@ const MainSystem: React.FC = () => {
                     {/* --- KEYBOARD TOOLS (RIGHT SIDE) --- */}
                     {/* Adjust position for mobile to not cover content */}
                     <div className="absolute right-4 top-16 md:top-1/2 md:-translate-y-1/2 flex flex-col gap-4 z-40 scale-75 md:scale-100 origin-top-right md:origin-center">
-                        <button onClick={togglePlay} className={`w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center transition-transform active:scale-95 ${themeStyles.keyCap} ${isPlaying ? 'active' : ''}`}>
+                        <button onClick={togglePlay} className={`w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center transition-transform active:scale-95 ${themeStyles.keyCap} ${isPlaying ? 'active' : ''}`} aria-label={isPlaying ? "Pause" : "Play"}>
                             {isPlaying ? <Pause size={24} /> : <Play size={24} />}
                         </button>
-                        <button className={`w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center transition-transform active:scale-95 ${themeStyles.keyCap}`}>
+                        <button className={`w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center transition-transform active:scale-95 ${themeStyles.keyCap}`} aria-label="Music">
                             <Music size={24} />
                         </button>
-                        <button onClick={handleSkip} className={`w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center transition-transform active:scale-95 ${themeStyles.keyCap}`}>
+                        <button onClick={handleSkip} className={`w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center transition-transform active:scale-95 ${themeStyles.keyCap}`} aria-label="Skip">
                             <SkipForward size={24} />
                         </button>
                     </div>
@@ -507,6 +568,8 @@ const MainSystem: React.FC = () => {
                             ${themeStyles.text}
                             ${themeStyles.contentBorder}
                         `}
+                            onTouchStart={onTouchStart}
+                            onTouchEnd={onTouchEnd}
                             style={{
                                 // Revolving Door Transform: Rotate Y + Scale + Blur
                                 transform: `
@@ -631,10 +694,11 @@ const MainSystem: React.FC = () => {
                                 value={isMuted ? 0 : volume}
                                 onChange={handleVolumeChange}
                                 className={`w-16 md:w-24 h-1 rounded-lg appearance-none cursor-pointer bg-gray-600 accent-current ${themeMode === 'CONSOLE' ? 'text-black' : themeMode === 'RETRO' ? 'text-[#00ffff]' : 'text-white'}`}
+                                aria-label="Volume Control"
                             />
                         </div>
 
-                        <button onClick={toggleMute} className={`p-2 rounded-lg hover:bg-gray-500/10 ${themeMode === 'CONSOLE' ? 'text-black' : themeMode === 'RETRO' ? 'text-[#00ff00]' : 'text-gray-400'}`}>
+                        <button onClick={toggleMute} className={`p-2 rounded-lg hover:bg-gray-500/10 ${themeMode === 'CONSOLE' ? 'text-black' : themeMode === 'RETRO' ? 'text-[#00ff00]' : 'text-gray-400'}`} aria-label={isMuted ? "Unmute" : "Mute"}>
                             {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
                         </button>
                         <div className={`hidden md:block text-xs opacity-50 ${themeMode === 'CONSOLE' ? 'text-black' : themeMode === 'RETRO' ? 'text-[#ff00ff]' : 'text-white'}`}>
@@ -643,22 +707,36 @@ const MainSystem: React.FC = () => {
                     </div>
                 </div>
             </div>
-
-
             {/* Mini Player Overlay */}
             <MiniPlayer />
-        </div>
+        </div >
     );
 };
 
 const App: React.FC = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [appState, setAppState] = useState<AppState>('STARTER');
 
-    if (!isAuthenticated) {
-        return <LeandrosWelcome onSuccess={() => setIsAuthenticated(true)} />;
+    const handleStarterSuccess = () => {
+        setAppState('OS');
+    };
+
+    const handleLaunchIDE = () => {
+        setAppState('IDE');
+    };
+
+    const handleExitIDE = () => {
+        setAppState('OS');
+    };
+
+    if (appState === 'STARTER') {
+        return <LeandrosWelcome onSuccess={handleStarterSuccess} />;
     }
 
-    return <MainSystem />;
+    if (appState === 'IDE') {
+        return <CaliDraw onExit={handleExitIDE} />;
+    }
+
+    return <MainSystem onLaunchIDE={handleLaunchIDE} />;
 };
 
 

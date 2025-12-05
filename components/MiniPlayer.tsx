@@ -195,7 +195,7 @@ const MiniPlayer: React.FC = () => {
                         {mode === 'YOUTUBE' ? <Film size={14} /> : <Youtube size={14} />}
                     </button>
 
-                    <button onClick={() => setIsMinimized(true)} className="p-1 hover:text-white"><Minus size={14} /></button>
+                    <button onClick={() => setIsMinimized(true)} className="p-1 hover:text-white" aria-label="Minimize Player"><Minus size={14} /></button>
                 </div>
             </div>
 
@@ -246,6 +246,7 @@ const MiniPlayer: React.FC = () => {
                             className="w-full h-full"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
+                            title="YouTube Video Player"
                         />
                     ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center p-4 gap-2">

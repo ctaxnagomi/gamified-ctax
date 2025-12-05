@@ -35,7 +35,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ theme }) => {
                                 <button key={i} className={`
                                     p-2 rounded-lg border transition-colors
                                     ${theme === 'CONSOLE' ? 'border-black text-black hover:bg-black hover:text-white' : 'border-gray-700 text-gray-400 hover:text-white hover:border-white'}
-                                `}>
+                                `} aria-label={`Social Link ${i}`}>
                                     <Icon size={18} />
                                 </button>
                             ))}

@@ -10,7 +10,7 @@ export interface NavItem {
 export enum View {
   DASHBOARD = 'DASHBOARD',
   JOBS = 'JOBS',
-  QUESTS = 'QUESTS',
+  CALIDRAW = 'CALIDRAW',
   LEADERBOARD = 'LEADERBOARD',
   PROFILE = 'PROFILE',
 }
