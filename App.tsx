@@ -210,7 +210,6 @@ const MainSystem: React.FC<MainSystemProps> = ({ onLaunchIDE }) => {
                     [View.CALIDRAW]: <PenTool size={18} />,
                     [View.LEADERBOARD]: <User size={18} />,
                     [View.PROFILE]: <Award size={18} />,
-                    [View.PROFILE]: <Award size={18} />,
                     'MAP': <Calendar size={18} />,
                     [View.EMULATOR]: <Gamepad2 size={18} />
                 };
@@ -231,7 +230,6 @@ const MainSystem: React.FC<MainSystemProps> = ({ onLaunchIDE }) => {
                     [View.JOBS]: <Users size={18} />,
                     [View.CALIDRAW]: <PenTool size={18} />,
                     [View.LEADERBOARD]: <Trophy size={18} />,
-                    [View.PROFILE]: <User size={18} />,
                     [View.PROFILE]: <User size={18} />,
                     'MAP': <Map size={18} />,
                     [View.EMULATOR]: <Gamepad2 size={18} />
