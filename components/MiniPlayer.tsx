@@ -3,8 +3,9 @@ import { X, Minus, Maximize2, Move, Youtube, Film, Activity, Key, Loader, Check,
 
 const MiniPlayer: React.FC = () => {
     const [isMinimized, setIsMinimized] = useState(false);
-    const [position, setPosition] = useState({ x: 20, y: 20 });
-    const [size, setSize] = useState({ width: 320, height: 180 });
+    // Use absolute positioning with safe defaults inside the container
+    const [position, setPosition] = useState({ x: 20, y: 80 });
+    const [size, setSize] = useState({ width: 320, height: 220 }); // Slightly larger default height
     const [isDragging, setIsDragging] = useState(false);
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
     const [videoUrl, setVideoUrl] = useState('');
@@ -34,6 +35,13 @@ const MiniPlayer: React.FC = () => {
     // --- DRAG LOGIC ---
     const handleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
         if (isMinimized || isMobile) return; // Disable drag on mobile
+
+        // Prevent interaction if clicking controls/input
+        if ((e.target as HTMLElement).closest('input') ||
+            (e.target as HTMLElement).closest('button')) {
+            return;
+        }
+
         setIsDragging(true);
         const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
         const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
@@ -47,8 +55,11 @@ const MiniPlayer: React.FC = () => {
         if (isDragging) {
             const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
             const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
-            const newX = Math.min(Math.max(0, clientX - dragOffset.x), window.innerWidth - size.width);
-            const newY = Math.min(Math.max(0, clientY - dragOffset.y), window.innerHeight - size.height);
+            // No bounds checking against window, let it be free inside container (or constrained if needed)
+            // Ideally we constrain to parent, but parent ref isn't passed.
+            // Simplified logic: just update position
+            const newX = clientX - dragOffset.x;
+            const newY = clientY - dragOffset.y;
             setPosition({ x: newX, y: newY });
         }
     };
@@ -129,7 +140,7 @@ const MiniPlayer: React.FC = () => {
     if (isMinimized) {
         return (
             <div
-                className="fixed bottom-20 md:bottom-4 right-4 z-[100] w-12 h-12 bg-cyan-900/80 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 active:scale-95 transition-transform border-2 border-cyan-500 shadow-[0_0_15px_rgba(0,255,255,0.5)]"
+                className="absolute bottom-20 right-4 z-[50] w-12 h-12 bg-cyan-900/80 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 active:scale-95 transition-transform border-2 border-cyan-500 shadow-[0_0_15px_rgba(0,255,255,0.5)]"
                 onClick={() => setIsMinimized(false)}
                 title="Open MiniPlayer"
             >
@@ -139,7 +150,7 @@ const MiniPlayer: React.FC = () => {
     }
 
     // Mobile: Fixed bottom sheet style
-    // Desktop: Draggable floating window
+    // Desktop: Draggable floating window (Absolute inside container)
     const mobileStyles = isMobile ? {
         left: 0,
         right: 0,
@@ -147,19 +158,21 @@ const MiniPlayer: React.FC = () => {
         top: 'auto',
         width: '100%',
         height: 220,
-        borderRadius: '16px 16px 0 0'
+        borderRadius: '16px 16px 0 0',
+        position: 'absolute'
     } : {
         left: position.x,
         top: position.y,
         width: size.width,
-        height: size.height
+        height: size.height,
+        position: 'absolute'
     };
 
     return (
         <div
             ref={playerRef}
             style={mobileStyles as React.CSSProperties}
-            className={`fixed z-[90] bg-black border border-cyan-700 shadow-[0_0_20px_rgba(0,255,255,0.2)] flex flex-col overflow-hidden transition-shadow hover:shadow-[0_0_30px_rgba(0,255,255,0.4)] ${isMobile ? 'rounded-t-2xl' : ''}`}
+            className={`z-50 bg-black border border-cyan-700 shadow-[0_0_20px_rgba(0,255,255,0.2)] flex flex-col overflow-hidden transition-shadow hover:shadow-[0_0_30px_rgba(0,255,255,0.4)] ${isMobile ? 'rounded-t-2xl' : ''}`}
         >
             {/* Header */}
             <div

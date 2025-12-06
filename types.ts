@@ -13,5 +13,5 @@ export enum View {
   CALIDRAW = 'CALIDRAW',
   LEADERBOARD = 'LEADERBOARD',
   PROFILE = 'PROFILE',
-  EMULATOR = 'EMULATOR',
+
 }
